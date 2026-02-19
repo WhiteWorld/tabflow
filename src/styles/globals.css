@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-bg1 text-pri font-sans;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-faint rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ter;
+  }
+}
+
+@layer utilities {
+  .border-subtle {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+  .border-subtle-hover:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .bg-accent-dim {
+    background-color: rgba(62, 232, 137, 0.12);
+  }
+  .bg-warn-dim {
+    background-color: rgba(245, 166, 35, 0.12);
+  }
+  .bg-danger-dim {
+    background-color: rgba(244, 91, 105, 0.12);
+  }
+  .bg-info-dim {
+    background-color: rgba(91, 156, 244, 0.12);
+  }
+  .border-accent-dim {
+    border-color: rgba(62, 232, 137, 0.2);
+  }
+  .border-warn-dim {
+    border-color: rgba(245, 166, 35, 0.2);
+  }
+  .border-danger-dim {
+    border-color: rgba(244, 91, 105, 0.2);
+  }
+}
