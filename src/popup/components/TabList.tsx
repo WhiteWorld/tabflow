@@ -29,7 +29,9 @@ function groupByDomain(tabs: chrome.tabs.Tab[]): GroupedTabs[] {
       map.get(key)!.push(tab);
     }
   }
-  return Array.from(map.entries()).map(([domain, tabs]) => ({ domain, tabs }));
+  return Array.from(map.entries())
+    .map(([domain, tabs]) => ({ domain, tabs }))
+    .sort((a, b) => b.tabs.length - a.tabs.length);
 }
 
 export default function TabList({ tabs, runtime, onManage }: TabListProps) {

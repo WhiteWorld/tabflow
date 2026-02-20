@@ -33,22 +33,22 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
 
   return (
     <div
-      className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-bg3 transition-colors cursor-pointer border-b border-white/[0.04] group"
+      className="flex items-center gap-2 px-3 py-2 bg-bg2 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all cursor-pointer group mx-3 my-1"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
     >
       {/* Favicon */}
-      <div className="w-4 h-4 flex-shrink-0">
+      <div className="w-4 h-4 flex-shrink-0 rounded overflow-hidden">
         {tab.favIconUrl && !imgError ? (
           <img
             src={tab.favIconUrl}
             alt=""
-            className="w-4 h-4 rounded-sm"
+            className="w-4 h-4"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-4 h-4 rounded-sm bg-bg4 flex items-center justify-center text-[8px] text-ter">
+          <div className="w-4 h-4 bg-bg4 flex items-center justify-center text-[8px] text-ter">
             🌐
           </div>
         )}
@@ -56,7 +56,7 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
 
       {/* Title + domain */}
       <div className="flex-1 min-w-0">
-        <div className="text-xs text-pri truncate leading-tight">
+        <div className="text-[11px] font-medium text-pri truncate leading-tight">
           {tab.title || domain}
         </div>
         <div className="text-[10px] text-ter font-mono truncate">
@@ -73,7 +73,7 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
           {!hideManage && (
             <button
               onClick={handleManage}
-              className="w-6 h-6 flex items-center justify-center rounded hover:bg-bg4 text-ter hover:text-sec transition-colors text-xs"
+              className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-bg3 text-ter hover:text-sec transition-colors text-xs"
               title="Manage"
             >
               ⚙️
@@ -81,7 +81,7 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
           )}
           <button
             onClick={handleClose}
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-danger/10 text-ter hover:text-danger transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-danger-dim text-ter hover:text-danger transition-colors text-xs"
             title="Close tab"
           >
             ✕

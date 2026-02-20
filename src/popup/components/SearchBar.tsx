@@ -21,11 +21,9 @@ export default function SearchBar({ value, onChange, placeholder = 'Search tabs.
   }, []);
 
   return (
-    <div className="px-3 py-2 border-b border-white/[0.06]">
-      <div className="flex items-center gap-2 bg-bg1 rounded px-2.5 py-1.5 border border-white/[0.06] focus-within:border-white/[0.12]">
-        <svg className="w-3 h-3 text-ter flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+    <div className="px-3 py-2">
+      <div className="flex items-center gap-2 bg-bg3 rounded-lg px-3 py-2 border border-white/[0.06] focus-within:border-white/[0.12] transition-colors">
+        <span className="text-sm text-ter flex-shrink-0">🔍</span>
         <input
           ref={inputRef}
           type="text"
@@ -35,10 +33,15 @@ export default function SearchBar({ value, onChange, placeholder = 'Search tabs.
           className="flex-1 bg-transparent text-xs text-pri placeholder-ter outline-none"
         />
         {value && (
-          <button onClick={() => onChange('')} className="text-ter hover:text-sec text-xs">✕</button>
+          <button
+            onClick={() => onChange('')}
+            className="w-5 h-5 flex items-center justify-center rounded text-ter hover:text-sec hover:bg-bg4 transition-colors text-xs"
+          >
+            ✕
+          </button>
         )}
         {!value && (
-          <span className="font-mono text-[10px] text-faint">⌘K</span>
+          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-bg4 text-faint">⌘K</span>
         )}
       </div>
     </div>
