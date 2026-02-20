@@ -23,9 +23,9 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
   };
 
   return (
-    <div className={`bg-bg2 rounded-lg border transition-colors ${
-      rule.enabled ? 'border-white/[0.08]' : 'border-white/[0.04]'
-    }`}>
+    <div className={`bg-bg2 rounded-lg border transition-colors relative ${
+      menuOpen ? 'z-10' : ''
+    } ${rule.enabled ? 'border-white/[0.08]' : 'border-white/[0.04]'}`}>
       <div className={`flex items-start gap-3 p-4 ${!rule.enabled ? 'opacity-60' : ''}`}>
         {/* Toggle */}
         <button
