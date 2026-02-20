@@ -21,10 +21,11 @@ export default function App() {
   const { tabs, activeTab } = useTabs();
   const runtime = useRuntime();
   const rules = useRules();
-  const { stash, restore } = usePast();
+  const { stash, restore, restoreAll } = usePast();
 
   const [view, setView] = useState<View>('now');
   const [search, setSearch] = useState('');
+  const [pastSearch, setPastSearch] = useState('');
   const [intentDomain, setIntentDomain] = useState<string | null>(null);
   const [onboardingDismissed, setOnboardingDismissed] = useState(true);
   const [trustDismissed, setTrustDismissed] = useState(false);
@@ -55,12 +56,13 @@ export default function App() {
   const hasActiveUndo = !!runtime.pendingUndoGroup &&
     Date.now() - runtime.pendingUndoGroup.closedAt < 5000;
 
-  // Compute counts — all managed tabs (pending or counting) go to Soon
+  // Compute counts — filter soonEntries to only tabs actually open
+  const openTabIds = new Set(tabs.map(t => t.id).filter(Boolean));
   const managedTabIds = new Set(
     Object.values(runtime.managedTabs).map(e => e.tabId)
   );
   const nowTabs = tabs.filter(t => !managedTabIds.has(t.id!));
-  const soonEntries = Object.values(runtime.managedTabs);
+  const soonEntries = Object.values(runtime.managedTabs).filter(e => openTabIds.has(e.tabId));
   const activeRuleCount = rules.filter(r => r.enabled).length;
 
   const handleManage = useCallback((domain: string) => {
@@ -83,6 +85,16 @@ export default function App() {
     setPendingCleanCount(0);
   }, []);
 
+  // Auto-dismiss TrustBanner after 5s
+  useEffect(() => {
+    if (pendingCleanCount > 0 && !trustDismissed) {
+      const timer = setTimeout(() => {
+        handleDismissTrust();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingCleanCount, trustDismissed, handleDismissTrust]);
+
   const handleDismissOnboarding = useCallback(async () => {
     setOnboardingDismissed(true);
     await chrome.storage.local.set({ onboardingBannerDismissed: true });
@@ -103,7 +115,7 @@ export default function App() {
   };
 
   return (
-    <div className="bg-bg2 flex flex-col" style={{ width: 380, maxHeight: 580, overflow: 'hidden' }}>
+    <div className="bg-bg2 flex flex-col" style={{ width: 380, height: 580, overflow: 'hidden' }}>
       {intentDomain && (
         <IntentCreator
           domain={intentDomain}
@@ -121,6 +133,7 @@ export default function App() {
       <CurrentTabBar
         activeTab={activeTab}
         runtime={runtime}
+        rules={rules}
         onManage={handleManage}
       />
 
@@ -132,10 +145,7 @@ export default function App() {
         pastCount={stash.length}
       />
 
-      <div
-        className="flex-1 overflow-y-auto overflow-x-hidden"
-        style={{ maxHeight: 400 }}
-      >
+      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
         {/* Banners */}
         {hasActiveUndo && (
           <UndoBanner
@@ -158,17 +168,19 @@ export default function App() {
         )}
 
         <SearchBar
-          value={search}
-          onChange={setSearch}
+          value={view === 'past' ? pastSearch : search}
+          onChange={view === 'past' ? setPastSearch : setSearch}
           placeholder={view === 'past' ? 'Search past tabs...' : 'Search tabs...'}
         />
 
         {view === 'now' && (
-          <TabList
-            tabs={filterBySearch(nowTabs, search)}
-            runtime={runtime}
-            onManage={handleManage}
-          />
+          <>
+            <TabList
+              tabs={filterBySearch(nowTabs, search)}
+              runtime={runtime}
+              onManage={handleManage}
+            />
+          </>
         )}
 
         {view === 'soon' && (
@@ -176,22 +188,17 @@ export default function App() {
             entries={soonEntries}
             tabs={tabs}
             search={search}
+            rules={rules}
           />
         )}
 
         {view === 'past' && (
           <PastList
-            stash={filterBySearch(stash, search)}
+            stash={filterBySearch(stash, pastSearch)}
             onRestore={restore}
+            onRestoreAll={restoreAll}
           />
         )}
-      </div>
-
-      {/* AI Analyze button */}
-      <div className="border-t border-white/[0.06] px-3 py-2 bg-bg1">
-        <button className="w-full py-2 text-xs font-semibold text-ter hover:text-sec transition-colors">
-          ✨ AI Analyze All {tabs.length > 0 ? `${tabs.length} ` : ''}Tabs
-        </button>
       </div>
     </div>
   );

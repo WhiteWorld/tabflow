@@ -60,10 +60,12 @@ export interface ManagedTabEntry {
   startedAt: number;
   triggerAt: number; // 0 = matched but not yet counting
   alarmName: string;
+  pausedAt?: number; // triggerAt snapshot when tab became active (paused countdown)
 }
 
 export interface RuntimeState {
   managedTabs: Record<number, ManagedTabEntry>;
+  tabCreatedAt: Record<number, number>;
   lastUserInteractionAt: number;
   lastActiveTabId?: number;
   pendingUndoGroup: {

@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 const DEFAULT_RUNTIME: RuntimeState = {
   managedTabs: {},
+  tabCreatedAt: {},
   lastUserInteractionAt: 0,
   pendingUndoGroup: null,
 };
@@ -43,6 +44,7 @@ export async function getRuntime(): Promise<RuntimeState> {
     ...DEFAULT_RUNTIME,
     ...stored,
     managedTabs: stored?.managedTabs ?? {},
+    tabCreatedAt: stored?.tabCreatedAt ?? {},
   };
 }
 

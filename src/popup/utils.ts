@@ -26,19 +26,18 @@ export function getRootDomain(hostname: string): string {
   return extractRootDomain(hostname);
 }
 
-export function getTimeGroup(closedAt: number): 'today' | 'yesterday' | 'thisWeek' | 'older' {
-  const now = new Date();
-  const date = new Date(closedAt);
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+export type PastTimeGroup = 'justNow' | 'lastHour' | 'today' | 'twoDaysAgo' | 'older';
 
-  const isToday = date.toDateString() === now.toDateString();
-  if (isToday) return 'today';
+export function getPastTimeGroup(closedAt: number): PastTimeGroup {
+  const diffMs = Date.now() - closedAt;
+  const diffMin = diffMs / 60000;
+  const diffHour = diffMs / 3600000;
+  const diffDay = diffMs / 86400000;
 
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) return 'yesterday';
-
-  if (diffDays < 7) return 'thisWeek';
+  if (diffMin < 10) return 'justNow';
+  if (diffHour < 1) return 'lastHour';
+  if (diffDay < 1) return 'today';
+  if (diffDay < 2) return 'twoDaysAgo';
   return 'older';
 }
 

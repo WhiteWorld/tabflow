@@ -27,5 +27,10 @@ export function usePast() {
     await chrome.runtime.sendMessage({ type: 'RESTORE_FROM_STASH', stashId });
   }, []);
 
-  return { stash, restore, reload };
+  const restoreAll = useCallback(async (stashIds: string[]) => {
+    // Snapshot ids first, then fire all in parallel before any storage update triggers re-render
+    await Promise.all(stashIds.map(id => chrome.runtime.sendMessage({ type: 'RESTORE_FROM_STASH', stashId: id })));
+  }, []);
+
+  return { stash, restore, restoreAll, reload };
 }

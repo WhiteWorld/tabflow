@@ -3,30 +3,44 @@ import RuleEditor from './RuleEditor';
 
 interface RuleSidebarProps {
   rule: Rule | null;
+  existingRules: Rule[];
   settings: Settings | null;
   onSave: (rule: Rule) => void;
   onClose: () => void;
 }
 
-export default function RuleSidebar({ rule, onSave, onClose }: RuleSidebarProps) {
+export default function RuleSidebar({ rule, existingRules, onSave, onClose }: RuleSidebarProps) {
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 z-40"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
         onClick={onClose}
       />
 
-      {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 w-96 bg-bg2 border-l border-white/[0.06] z-50 flex flex-col shadow-2xl">
+      {/* Panel — 384px per design spec */}
+      <div
+        className="fixed right-0 top-0 bottom-0 z-50 flex flex-col"
+        style={{
+          width: 384,
+          background: '#0E1117',
+          borderLeft: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '-8px 0 40px rgba(0,0,0,0.5)',
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-          <h3 className="text-base font-semibold text-pri">
-            {rule ? 'Edit Rule' : 'Create Rule'}
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <h3 className="text-[16px] font-bold text-pri">
+            {rule ? 'Edit Rule' : 'New Rule'}
           </h3>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-bg3 text-ter hover:text-sec transition-colors"
+            className="flex items-center justify-center rounded-[6px] text-ter transition-colors"
+            style={{ width: 28, height: 28, fontSize: 12 }}
           >
             ✕
           </button>
@@ -36,6 +50,7 @@ export default function RuleSidebar({ rule, onSave, onClose }: RuleSidebarProps)
         <div className="flex-1 overflow-y-auto p-5">
           <RuleEditor
             rule={rule}
+            existingRules={existingRules}
             onSave={onSave}
             onCancel={onClose}
           />

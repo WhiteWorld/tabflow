@@ -33,22 +33,32 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
 
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 bg-bg2 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all cursor-pointer group mx-3 my-1"
+      className="flex items-center gap-2.5 px-3 py-2 mx-3 my-1.5 rounded-[9px] cursor-pointer transition-all"
+      style={{
+        background: '#151921',
+        border: `1px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
     >
-      {/* Favicon */}
-      <div className="w-4 h-4 flex-shrink-0 rounded overflow-hidden">
+      {/* Favicon 18×18 */}
+      <div
+        className="flex-shrink-0 flex items-center justify-center rounded-[5px] overflow-hidden"
+        style={{ width: 18, height: 18, background: 'rgba(255,255,255,0.08)' }}
+      >
         {tab.favIconUrl && !imgError ? (
           <img
             src={tab.favIconUrl}
             alt=""
-            className="w-4 h-4"
+            style={{ width: 18, height: 18 }}
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-4 h-4 bg-bg4 flex items-center justify-center text-[8px] text-ter">
+          <div
+            className="flex items-center justify-center bg-bg4 text-ter"
+            style={{ width: 18, height: 18, fontSize: 9, borderRadius: 5 }}
+          >
             🌐
           </div>
         )}
@@ -56,10 +66,10 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
 
       {/* Title + domain */}
       <div className="flex-1 min-w-0">
-        <div className="text-[11px] font-medium text-pri truncate leading-tight">
+        <div className="text-[11.5px] font-medium text-pri truncate leading-tight">
           {tab.title || domain}
         </div>
-        <div className="text-[10px] text-ter font-mono truncate">
+        <div className="font-mono text-[9.5px] text-faint truncate">
           {domain}
           {entry && entry.triggerAt > 0 && (
             <span className="ml-1 text-warn">· {entry.ruleName}</span>
@@ -67,27 +77,43 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
         </div>
       </div>
 
-      {/* Actions (hover) */}
-      {hovered && (
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {!hideManage && (
-            <button
-              onClick={handleManage}
-              className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-bg3 text-ter hover:text-sec transition-colors text-xs"
-              title="Manage"
-            >
-              ⚙️
-            </button>
-          )}
+      {/* Right side: rule pill OR manage button + close on hover */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {entry && entry.triggerAt > 0 ? (
+          /* Has active countdown — show pill */
+          <span
+            className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px]"
+            style={{ background: 'rgba(240,160,48,0.12)', color: '#F0A030' }}
+          >
+            {entry.ruleName}
+          </span>
+        ) : !hideManage ? (
+          /* No rule — always show ⚙️ Manage button (faint, not just hover) */
+          <button
+            onClick={handleManage}
+            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-[5px] transition-colors"
+            style={{
+              background: hovered ? 'rgba(60,232,130,0.12)' : 'transparent',
+              border: `1px solid ${hovered ? 'rgba(60,232,130,0.2)' : 'transparent'}`,
+            }}
+            title="Set rule for this site"
+          >
+            <span className="text-[10px]">⚙️</span>
+            {hovered && (
+              <span className="text-[10px] font-semibold text-accent">Manage</span>
+            )}
+          </button>
+        ) : null}
+        {hovered && (
           <button
             onClick={handleClose}
-            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-danger-dim text-ter hover:text-danger transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded text-ter hover:text-danger transition-colors text-xs"
             title="Close tab"
           >
             ✕
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

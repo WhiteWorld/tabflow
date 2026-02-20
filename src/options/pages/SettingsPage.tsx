@@ -62,179 +62,147 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
   };
 
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-xl font-bold text-pri mb-6">Settings</h2>
+    <div className="max-w-[600px]">
 
-      {/* Rules section */}
-      <section className="mb-8">
-        <h3 className="text-sm font-semibold text-sec uppercase tracking-wider mb-3">Rules</h3>
-        <div className="bg-bg2 rounded-lg border border-white/[0.06] divide-y divide-white/[0.06]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-pri">Manage Rules</span>
-            <button
-              onClick={() => onNavigate('rules')}
-              className="text-sm text-accent hover:underline"
-            >
-              Manage Rules →
-            </button>
-          </div>
-          {settings && settings.protectedDomains.length > 0 && (
-            <div className="px-4 py-3">
-              <div className="text-xs text-ter mb-2">Protected Domains</div>
-              <div className="flex flex-wrap gap-1.5">
-                {settings.protectedDomains.map(d => (
-                  <span
-                    key={d}
-                    className="flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-accent/10 text-accent"
-                  >
-                    📌 {d}
-                    <button
-                      onClick={() => handleRemoveProtected(d)}
-                      className="text-ter hover:text-danger ml-1"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* ── Rules ── */}
+      <section className="mb-7">
+        <div
+          className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          📐 Rules
         </div>
-      </section>
 
-      {/* General */}
-      <section className="mb-8">
-        <h3 className="text-sm font-semibold text-sec uppercase tracking-wider mb-3">General</h3>
-        <div className="bg-bg2 rounded-lg border border-white/[0.06] divide-y divide-white/[0.06]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-pri">Language</span>
-            <select
-              value={settings?.language ?? 'auto'}
-              onChange={e => updateSettings({ language: e.target.value as Settings['language'] })}
-              className="bg-bg3 text-sm text-sec border border-white/[0.06] rounded px-2 py-1 outline-none"
-            >
-              <option value="auto">Auto-detect</option>
-              <option value="en">English</option>
-              <option value="zh_CN">简体中文</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-pri">Past Expiry</span>
-            <select
-              value={settings?.stashExpiryDays ?? 7}
-              onChange={e => updateSettings({ stashExpiryDays: Number(e.target.value) })}
-              className="bg-bg3 text-sm text-sec border border-white/[0.06] rounded px-2 py-1 outline-none"
-            >
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Configuration */}
-      <section className="mb-8">
-        <h3 className="text-sm font-semibold text-sec uppercase tracking-wider mb-3">AI Configuration</h3>
-        <div className="bg-bg2 rounded-lg border border-white/[0.06] divide-y divide-white/[0.06]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <div className="text-sm text-pri">AI Analysis</div>
-              <div className="text-xs text-ter mt-0.5">Analyze tabs with Claude or DeepSeek</div>
+        <div
+          className="flex items-center justify-between py-2.5"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <div>
+            <div className="text-[12.5px] font-medium text-pri">Active Rules</div>
+            <div className="text-[10px] text-faint mt-0.5">
+              {rules.filter(r => r.enabled).length} rules managing {rules.reduce((n, r) => n + r.domains.length, 0)} domains
             </div>
-            <button
-              onClick={() => updateSettings({ aiEnabled: !settings?.aiEnabled })}
-              className={`w-9 h-5 rounded-full relative transition-colors ${
-                settings?.aiEnabled ? 'bg-accent' : 'bg-bg4'
-              }`}
-            >
-              <div
-                className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all ${
-                  settings?.aiEnabled ? 'left-[18px]' : 'left-0.5'
-                }`}
-              />
-            </button>
           </div>
-          {settings?.aiEnabled && (
-            <>
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm text-pri">Provider</span>
-                <select
-                  value={settings.aiProvider}
-                  onChange={e => updateSettings({ aiProvider: e.target.value as Settings['aiProvider'] })}
-                  className="bg-bg3 text-sm text-sec border border-white/[0.06] rounded px-2 py-1 outline-none"
-                >
-                  <option value="claude">Claude Haiku</option>
-                  <option value="deepseek">DeepSeek</option>
-                </select>
-              </div>
-              <div className="px-4 py-3">
-                <div className="text-xs text-ter mb-1.5">API Key</div>
-                <input
-                  type="password"
-                  value={settings.aiApiKey}
-                  onChange={e => updateSettings({ aiApiKey: e.target.value })}
-                  placeholder="sk-..."
-                  className="w-full bg-bg3 text-sm text-pri border border-white/[0.06] rounded px-3 py-1.5 outline-none focus:border-white/[0.12]"
-                />
-                <div className="text-[10px] text-ter mt-1">Stored locally. Never uploaded.</div>
-              </div>
-            </>
-          )}
+          <button
+            onClick={() => onNavigate('rules')}
+            className="text-[12px] font-semibold text-accent"
+          >
+            Manage →
+          </button>
         </div>
-      </section>
 
-      {/* Data Management */}
-      <section className="mb-8">
-        <h3 className="text-sm font-semibold text-sec uppercase tracking-wider mb-3">Data Management</h3>
-        <div className="bg-bg2 rounded-lg border border-white/[0.06] divide-y divide-white/[0.06]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-pri">Export Rules</span>
-            <button
-              onClick={handleExport}
-              className="text-sm text-accent hover:underline"
-            >
-              Download JSON
-            </button>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-pri">Import Rules</span>
-            <button
-              onClick={handleImport}
-              className="text-sm text-accent hover:underline"
-            >
-              Upload JSON
-            </button>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <div className="text-sm text-danger">Clear All Data</div>
-              <div className="text-xs text-ter mt-0.5">Deletes all rules, stash, and settings</div>
-            </div>
-            {confirmClear ? (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setConfirmClear(false)}
-                  className="text-xs text-ter hover:text-sec"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleClearAll}
-                  className="text-xs text-danger font-semibold hover:underline"
-                >
-                  Confirm Delete
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setConfirmClear(true)}
-                className="text-sm text-danger hover:underline"
+        <div className="py-2.5">
+          <div className="text-[12.5px] font-medium text-pri mb-1.5">Protected Domains</div>
+          <div className="flex flex-wrap gap-1.5">
+            {(settings?.protectedDomains ?? []).map(d => (
+              <span
+                key={d}
+                className="flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-[5px]"
+                style={{ background: 'rgba(80,144,240,0.12)', color: '#5090F0' }}
               >
-                Clear All
-              </button>
-            )}
+                📌 {d}
+                <button
+                  onClick={() => handleRemoveProtected(d)}
+                  className="opacity-60 hover:opacity-100 ml-0.5"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
           </div>
+          <div className="text-[9.5px] text-ter mt-1.5">These sites will never be auto-closed.</div>
+        </div>
+      </section>
+
+      {/* ── General ── */}
+      <section className="mb-7">
+        <div
+          className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          ⚙️ General
+        </div>
+
+        {[
+          {
+            label: 'Language',
+            sub: 'Auto-detect from browser',
+            value: settings?.language ?? 'auto',
+            onChange: (v: string) => updateSettings({ language: v as Settings['language'] }),
+            options: [['auto', 'Auto-detect'], ['en', 'English'], ['zh_CN', '简体中文']] as [string, string][],
+          },
+          {
+            label: 'Past Expiry',
+            sub: 'How long closed tabs are recoverable',
+            value: String(settings?.stashExpiryDays ?? 7),
+            onChange: (v: string) => updateSettings({ stashExpiryDays: Number(v) }),
+            options: [['7', '7 days'], ['14', '14 days'], ['30', '30 days']] as [string, string][],
+          },
+        ].map((row, i, arr) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between py-2.5"
+            style={{ borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+          >
+            <div>
+              <div className="text-[12.5px] font-medium text-pri">{row.label}</div>
+              {row.sub && <div className="text-[10px] text-faint mt-0.5">{row.sub}</div>}
+            </div>
+            <select
+              value={row.value}
+              onChange={e => row.onChange(e.target.value)}
+              className="font-sans text-[11.5px] text-sec outline-none px-2.5 py-1.5 rounded-[6px]"
+              style={{
+                width: 170,
+                background: '#1C2230',
+                border: '1px solid rgba(255,255,255,0.06)',
+                color: '#EAF0FA',
+                appearance: 'none',
+              }}
+            >
+              {row.options.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+            </select>
+          </div>
+        ))}
+      </section>
+
+      {/* ── Data Management ── */}
+      <section>
+        <div
+          className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          💾 Data Management
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
+            style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
+          >
+            📤 Export Rules
+          </button>
+          <button
+            onClick={handleImport}
+            className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
+            style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
+          >
+            📥 Import Rules
+          </button>
+          {confirmClear ? (
+            <div className="flex gap-2 items-center ml-2">
+              <button onClick={() => setConfirmClear(false)} className="text-xs text-ter">Cancel</button>
+              <button onClick={handleClearAll} className="text-xs text-danger font-semibold">Confirm Delete</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmClear(true)}
+              className="text-[12px] font-medium text-danger px-4 py-2 rounded-[7px] transition-colors"
+              style={{ background: 'rgba(232,69,90,0.12)', border: 'none' }}
+            >
+              🗑 Clear All Data
+            </button>
+          )}
         </div>
       </section>
     </div>

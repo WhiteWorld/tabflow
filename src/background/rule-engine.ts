@@ -35,6 +35,16 @@ export async function handleTabUpdated(tabId: number, url: string): Promise<void
     return;
   }
 
+  // If this tab is already managed for the same rule, don't reset its countdown
+  const runtime = await loadRuntime();
+  const existing = runtime.managedTabs[tabId];
+  if (existing) {
+    const rule = rules.find(r => r.id === existing.ruleId && r.enabled);
+    if (rule && rule.domains.some(d => matchDomain(url, d))) {
+      return; // Same rule still applies — leave countdown untouched
+    }
+  }
+
   await unregisterManagedTab(tabId);
 
   const rule = findMatchingRule(url, rules, settings.protectedDomains);
@@ -93,6 +103,7 @@ export async function handleTabActivated(
       triggerAt: 0,
       alarmName: '',
       startedAt: 0,
+      pausedAt: activeEntry.triggerAt > 0 ? activeEntry.triggerAt : activeEntry.pausedAt,
     };
     await saveRuntime(r2);
   }
@@ -117,6 +128,7 @@ export async function handleWindowFocusChanged(windowId: number): Promise<void> 
           triggerAt: 0,
           alarmName: '',
           startedAt: 0,
+          pausedAt: entry.triggerAt > 0 ? entry.triggerAt : entry.pausedAt,
         };
         await saveRuntime(freshRuntime);
       }

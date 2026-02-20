@@ -22,69 +22,65 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
     }
   };
 
+  const domainSummary = rule.domains.length <= 2
+    ? rule.domains.join(', ')
+    : `${rule.domains[0]} +${rule.domains.length - 1}`;
+  const triggerLabel = rule.trigger.type === 'inactive' ? 'inactive' : 'open time';
+  const timeLabel = rule.trigger.minutes >= 60
+    ? `${rule.trigger.minutes / 60}h`
+    : `${rule.trigger.minutes}m`;
+  const triggeredSuffix = rule.stats.triggeredCount > 0 ? ` · ${rule.stats.triggeredCount}× triggered` : '';
+
   return (
-    <div className={`bg-bg2 rounded-lg border transition-colors relative ${
-      menuOpen ? 'z-10' : ''
-    } ${rule.enabled ? 'border-white/[0.08]' : 'border-white/[0.04]'}`}>
-      <div className={`flex items-start gap-3 p-4 ${!rule.enabled ? 'opacity-60' : ''}`}>
-        {/* Toggle */}
-        <button
-          onClick={() => onToggle(rule)}
-          className={`w-9 h-5 rounded-full relative flex-shrink-0 mt-0.5 transition-colors ${
-            rule.enabled ? 'bg-accent' : 'bg-bg4'
-          }`}
-        >
-          <div
-            className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all ${
-              rule.enabled ? 'left-[18px]' : 'left-0.5'
-            }`}
-          />
-        </button>
-
-        {/* Content */}
+    <div
+      className={`rounded-[10px] relative ${menuOpen ? 'z-10' : ''}`}
+      style={{
+        background: '#151921',
+        border: `1px solid ${rule.enabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)'}`,
+        padding: '11px 14px',
+        opacity: rule.enabled ? 1 : 0.6,
+      }}
+    >
+      <div className="flex items-center gap-2">
+        {/* Name + summary */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-semibold text-pri">{rule.name}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              rule.source === 'template' ? 'bg-info/10 text-info' :
-              rule.source === 'ai' ? 'bg-warn/10 text-warn' :
-              'bg-bg4 text-ter'
-            }`}>
-              {rule.source === 'template' ? 'Template' : rule.source === 'ai' ? 'AI' : 'Manual'}
-            </span>
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {rule.domains.slice(0, 3).map(d => (
-              <span key={d} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-info/10 text-info">
-                {d}
-              </span>
-            ))}
-            {rule.domains.length > 3 && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg4 text-ter">
-                +{rule.domains.length - 3}
-              </span>
-            )}
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-warn/10 text-warn">
-              {rule.trigger.type === 'inactive' ? 'inactive' : 'open'} {rule.trigger.minutes}min
-            </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-danger/10 text-danger">
-              close+stash
-            </span>
-          </div>
-
-          {/* Stats */}
-          <div className="text-[10px] text-ter font-mono">
-            Triggered {rule.stats.triggeredCount} time{rule.stats.triggeredCount !== 1 ? 's' : ''}
+          <div className="text-[12.5px] font-semibold text-pri truncate">{rule.name}</div>
+          <div className="font-mono text-[10px] text-ter truncate mt-0.5">
+            {domainSummary} · {triggerLabel} {timeLabel}{triggeredSuffix}
           </div>
         </div>
 
+        {/* Toggle */}
+        <button
+          onClick={() => onToggle(rule)}
+          className="relative flex-shrink-0 transition-colors"
+          style={{
+            width: 34,
+            height: 19,
+            borderRadius: 10,
+            background: rule.enabled ? '#3CE882' : '#252B3C',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          <div
+            className="absolute bg-white rounded-full transition-all"
+            style={{ width: 14, height: 14, top: 2.5, left: rule.enabled ? 17.5 : 2.5 }}
+          />
+        </button>
+
         {/* Menu */}
-        <div className="relative flex-shrink-0">
+        <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-bg3 text-ter hover:text-sec transition-colors"
+            className="flex items-center justify-center rounded-[6px] text-ter transition-colors"
+            style={{
+              width: 24,
+              height: 24,
+              fontSize: 14,
+              background: menuOpen ? '#252B3C' : 'transparent',
+              border: menuOpen ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
+            }}
           >
             ⋮
           </button>
@@ -101,20 +97,13 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
 
       {/* Delete confirm */}
       {confirmDelete && (
-        <div className="px-4 pb-3 flex items-center gap-3 border-t border-white/[0.06] pt-3">
+        <div
+          className="flex items-center gap-3 mt-2.5 pt-2.5"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        >
           <span className="text-xs text-danger flex-1">Delete this rule?</span>
-          <button
-            onClick={() => setConfirmDelete(false)}
-            className="text-xs text-ter hover:text-sec"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onDelete(rule.id)}
-            className="text-xs text-danger font-semibold hover:underline"
-          >
-            Delete
-          </button>
+          <button onClick={() => setConfirmDelete(false)} className="text-xs text-ter">Cancel</button>
+          <button onClick={() => onDelete(rule.id)} className="text-xs text-danger font-semibold">Delete</button>
         </div>
       )}
     </div>

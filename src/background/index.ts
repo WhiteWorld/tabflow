@@ -79,6 +79,20 @@ chrome.runtime.onStartup.addListener(async () => {
   const allTabs = await chrome.tabs.query({});
   const openTabIds = new Set(allTabs.map(t => t.id).filter(Boolean));
 
+  // Seed tabCreatedAt for tabs that existed before this startup
+  for (const tab of allTabs) {
+    if (tab.id && !runtime.tabCreatedAt[tab.id]) {
+      runtime.tabCreatedAt[tab.id] = Date.now();
+    }
+  }
+
+  // Clean up tabCreatedAt for closed tabs
+  for (const tabIdStr of Object.keys(runtime.tabCreatedAt)) {
+    if (!openTabIds.has(Number(tabIdStr))) {
+      delete runtime.tabCreatedAt[Number(tabIdStr)];
+    }
+  }
+
   for (const tabIdStr of Object.keys(runtime.managedTabs)) {
     const tabId = Number(tabIdStr);
     if (!openTabIds.has(tabId)) {
@@ -121,9 +135,10 @@ chrome.runtime.onStartup.addListener(async () => {
 
 // ========== Tab Events ==========
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-  if (changeInfo.url) {
-    await handleTabUpdated(tabId, changeInfo.url);
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  // Trigger on URL change (navigation) OR on load complete (catches new tabs whose URL was set before listener fired)
+  if ((changeInfo.url || changeInfo.status === 'complete') && tab.url) {
+    await handleTabUpdated(tabId, tab.url);
   }
 });
 
@@ -143,8 +158,18 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   await saveRuntime(runtime);
 });
 
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (!tab.id) return;
+  const runtime = await loadRuntime();
+  runtime.tabCreatedAt[tab.id] = Date.now();
+  await saveRuntime(runtime);
+});
+
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   await unregisterManagedTab(tabId);
+  const runtime = await loadRuntime();
+  delete runtime.tabCreatedAt[tabId];
+  await saveRuntime(runtime);
 });
 
 // ========== Window Events ==========
@@ -153,23 +178,34 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   await handleWindowFocusChanged(windowId);
 });
 
+// Serial queue — prevents concurrent alarm handlers from racing on storage writes
+let _alarmQueue: Promise<void> = Promise.resolve();
+
+function enqueueAlarm(fn: () => Promise<void>): void {
+  _alarmQueue = _alarmQueue.then(fn).catch(err => {
+    console.error('[TabFlow] alarm handler error:', err);
+  });
+}
+
 // ========== Alarms ==========
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === UNDO_EXPIRE_ALARM) {
-    const runtime = await loadRuntime();
-    runtime.pendingUndoGroup = null;
-    await saveRuntime(runtime);
-    chrome.action.setBadgeText({ text: '' });
-    return;
-  }
+chrome.alarms.onAlarm.addListener((alarm) => {
+  enqueueAlarm(async () => {
+    if (alarm.name === UNDO_EXPIRE_ALARM) {
+      const runtime = await loadRuntime();
+      runtime.pendingUndoGroup = null;
+      await saveRuntime(runtime);
+      chrome.action.setBadgeText({ text: '' });
+      return;
+    }
 
-  if (alarm.name === STASH_CLEANUP_ALARM) {
-    await cleanupExpiredStash();
-    return;
-  }
+    if (alarm.name === STASH_CLEANUP_ALARM) {
+      await cleanupExpiredStash();
+      return;
+    }
 
-  await handleAlarmFired(alarm);
+    await handleAlarmFired(alarm);
+  });
 });
 
 // ========== Context Menus ==========

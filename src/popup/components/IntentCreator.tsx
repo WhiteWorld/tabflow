@@ -92,70 +92,99 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
   };
 
   return (
-    <div className="absolute inset-0 z-50 bg-bg1/95 flex flex-col" style={{ width: 380 }}>
-      {/* Header */}
-      <div className="flex items-center gap-2 px-3.5 py-3 border-b border-white/[0.06]">
-        <div className="w-4 h-4 rounded-sm bg-bg4 flex items-center justify-center text-[8px]">🌐</div>
-        <span className="font-mono text-xs text-sec flex-1 truncate">{domain}</span>
-        <span className="text-[10px] text-ter bg-bg3 px-1.5 py-0.5 rounded">current tab</span>
-      </div>
+    <div className="absolute inset-0 z-50" style={{ width: 380 }}>
+      {/* Dimmed backdrop with tab list showing through */}
+      <div className="absolute inset-0" style={{ background: 'rgba(14,17,23,0.7)' }} />
 
-      {/* Duplicate warning */}
-      {existingRule && (
-        <div className="mx-3.5 mt-3 px-3 py-2 rounded bg-warn/10 border border-warn/20 text-xs text-warn">
-          Already covered by <b>{existingRule.name}</b>
-          <button
-            onClick={() => setSelected('browsing')}
-            className="ml-2 underline text-warn"
+      {/* Modal card */}
+      <div
+        className="absolute"
+        style={{
+          top: 8,
+          left: 16,
+          right: 16,
+          background: '#0E1117',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: 14,
+          padding: '16px 18px',
+          boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+        }}
+      >
+        {/* Domain row */}
+        <div
+          className="flex items-center gap-2 px-2.5 py-2 rounded-lg mb-3.5"
+          style={{ background: '#151921', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <div className="w-4 h-4 rounded-sm bg-bg4 flex items-center justify-center text-[8px] flex-shrink-0">🌐</div>
+          <span className="font-semibold text-[12.5px] text-pri flex-1 truncate">{domain}</span>
+          <span className="font-mono text-[9px] text-ter">current tab</span>
+        </div>
+
+        {/* Duplicate warning */}
+        {existingRule && (
+          <div
+            className="px-3 py-2 rounded-[9px] mb-3 text-xs text-warn"
+            style={{ background: 'rgba(240,160,48,0.12)', border: '1px solid rgba(240,160,48,0.2)' }}
           >
-            Replace
+            Already covered by <b>{existingRule.name}</b>
+            <button onClick={() => setSelected('browsing')} className="ml-2 underline">Replace</button>
+          </div>
+        )}
+
+        {/* Intent question */}
+        <div className="text-[12px] font-semibold text-sec mb-2.5">Why is this tab open?</div>
+
+        {/* Intent options */}
+        <div className="flex flex-col gap-1.5 mb-3.5">
+          {INTENTS.map(intent => {
+            const isSelected = selected === intent.id;
+            const colorMap = {
+              browsing: { color: '#3CE882', bg: 'rgba(60,232,130,0.12)', border: '#3CE882' },
+              returning: { color: '#F0A030', bg: 'rgba(240,160,48,0.12)', border: '#F0A030' },
+              important: { color: '#5090F0', bg: 'rgba(80,144,240,0.12)', border: '#5090F0' },
+            };
+            const c = colorMap[intent.id];
+            return (
+              <button
+                key={intent.id}
+                onClick={() => setSelected(intent.id)}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-left transition-colors"
+                style={{
+                  background: isSelected ? c.bg : '#151921',
+                  border: `1px solid ${isSelected ? c.border : 'rgba(255,255,255,0.06)'}`,
+                }}
+              >
+                <span className="text-base flex-shrink-0">{intent.icon}</span>
+                <div className="flex-1">
+                  <div className="text-[12px] font-semibold" style={{ color: isSelected ? c.color : '#9AA4BD' }}>
+                    {intent.label}
+                  </div>
+                  <div className="text-[9.5px] text-ter mt-0.5">{intent.hint}</div>
+                </div>
+                {isSelected && <span className="text-[12px]" style={{ color: c.color }}>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-1.5">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2 rounded-[7px] text-xs font-semibold text-sec"
+            style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDone}
+            disabled={!selected || loading}
+            className="flex-[2] py-2 rounded-[7px] text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: '#3CE882', color: '#080A0F' }}
+          >
+            {loading ? 'Saving...' : 'Done'}
           </button>
         </div>
-      )}
-
-      {/* Intent question */}
-      <div className="px-3.5 pt-4 pb-2">
-        <div className="text-sm font-semibold text-pri">Why is this tab open?</div>
-      </div>
-
-      {/* Intent options */}
-      <div className="px-3.5 flex flex-col gap-2 flex-1">
-        {INTENTS.map(intent => (
-          <button
-            key={intent.id}
-            onClick={() => setSelected(intent.id)}
-            className={`flex items-center gap-3 px-3 py-3 rounded-md border text-left transition-colors ${
-              selected === intent.id
-                ? 'border-accent/40 bg-accent/10'
-                : 'border-white/[0.06] bg-bg3 hover:border-white/[0.12]'
-            }`}
-          >
-            <span className="text-lg">{intent.icon}</span>
-            <div>
-              <div className={`text-xs font-semibold ${selected === intent.id ? 'text-accent' : 'text-pri'}`}>
-                {intent.label}
-              </div>
-              <div className="text-[10px] text-ter mt-0.5">{intent.hint}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 px-3.5 py-3 border-t border-white/[0.06] mt-4">
-        <button
-          onClick={onClose}
-          className="flex-1 py-2 rounded text-xs font-semibold text-ter border border-white/[0.06] hover:border-white/[0.12] transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleDone}
-          disabled={!selected || loading}
-          className="flex-1 py-2 rounded text-xs font-semibold bg-accent text-bg1 hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? 'Saving...' : 'Done'}
-        </button>
       </div>
     </div>
   );

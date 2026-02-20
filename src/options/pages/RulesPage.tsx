@@ -79,17 +79,13 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-pri">Rules</h2>
-          <p className="text-sm text-ter mt-0.5">
-            {rules.filter(r => r.enabled).length} active · {rules.length} total
-          </p>
-        </div>
+    <div className="max-w-2xl">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[15px] font-bold text-pri">Auto-Close Rules</span>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-bg1 text-sm font-semibold hover:bg-accent/90 transition-colors"
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-[7px]"
+          style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
           + Create Rule
         </button>
@@ -102,8 +98,8 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
           <div className="text-xs mt-1">Create a rule to start managing tabs automatically</div>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {rules.map(rule => (
+        <div className="flex flex-col gap-2">
+          {[...rules].sort((a, b) => Number(b.enabled) - Number(a.enabled)).map(rule => (
             <RuleCard
               key={rule.id}
               rule={rule}
@@ -119,6 +115,7 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
       {sidebarOpen && (
         <RuleSidebar
           rule={editingRule}
+          existingRules={rules}
           settings={settings}
           onSave={handleSave}
           onClose={() => { setSidebarOpen(false); setEditingRule(null); }}

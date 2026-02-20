@@ -48,59 +48,100 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
   }));
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold text-pri mb-1">Pick your presets</h2>
-      <p className="text-sec text-sm mb-8">Enable the rules you want. You can always change them later.</p>
+    <div
+      className="max-w-[480px] mx-auto rounded-xl"
+      style={{
+        background: '#0E1117',
+        border: '1px solid rgba(255,255,255,0.06)',
+        padding: '28px 28px 24px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+      }}
+    >
+      {/* Header */}
+      <div className="text-center mb-5">
+        <div className="text-[18px] font-bold text-pri mb-1">⚡ Quick Setup</div>
+        <div className="text-[12.5px] text-ter">Toggle on the rules you want. You can customize them later.</div>
+      </div>
 
-      <div className="flex flex-col gap-3 mb-8">
+      {/* Template cards */}
+      <div className="flex flex-col gap-2.5 mb-5">
         {displayTemplates.map(rule => {
           const isOn = enabled.has(rule.id);
           return (
             <div
               key={rule.id}
               onClick={() => handleToggle(rule.id)}
-              className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
-                isOn
-                  ? 'border-accent/30 bg-accent/5'
-                  : 'border-white/[0.06] bg-bg2 hover:border-white/[0.12]'
-              }`}
+              className="px-4 py-3.5 rounded-[11px] cursor-pointer transition-all"
+              style={{
+                background: isOn ? 'rgba(60,232,130,0.06)' : '#151921',
+                border: `1px solid ${isOn ? 'rgba(60,232,130,0.2)' : 'rgba(255,255,255,0.06)'}`,
+              }}
             >
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-pri mb-1">{rule.name}</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {rule.domains.map(d => (
-                    <span key={d} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-info/10 text-info">
-                      {d}
-                    </span>
-                  ))}
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-warn/10 text-warn">
-                    {rule.trigger.type === 'inactive' ? 'inactive' : 'open'} {rule.trigger.minutes}min
-                  </span>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[13.5px] font-semibold text-pri">{rule.name}</span>
+                {/* Toggle */}
+                <div
+                  className="relative flex-shrink-0 transition-colors"
+                  style={{
+                    width: 34,
+                    height: 19,
+                    borderRadius: 10,
+                    background: isOn ? '#3CE882' : '#252B3C',
+                  }}
+                >
+                  <div
+                    className="absolute bg-white rounded-full transition-all"
+                    style={{
+                      width: 14,
+                      height: 14,
+                      top: 2.5,
+                      left: isOn ? 17.5 : 2.5,
+                    }}
+                  />
                 </div>
               </div>
-              {/* Toggle */}
-              <div
-                className={`w-9 h-5 rounded-full relative flex-shrink-0 mt-0.5 transition-colors ${
-                  isOn ? 'bg-accent' : 'bg-bg4'
-                }`}
-              >
-                <div
-                  className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-all ${
-                    isOn ? 'left-[18px]' : 'left-0.5'
-                  }`}
-                />
+              <div className="text-[11px] text-ter leading-snug mb-2">
+                {rule.trigger.type === 'inactive' ? 'inactive' : 'open'} {rule.trigger.minutes}min — auto-close matching tabs
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {rule.domains.map(d => (
+                  <span
+                    key={d}
+                    className="font-mono text-[9.5px] px-1.5 py-0.5 rounded-[4px]"
+                    style={{ background: 'rgba(80,144,240,0.12)', color: '#5090F0' }}
+                  >
+                    {d}
+                  </span>
+                ))}
+                <span
+                  className="font-mono text-[9.5px] px-1.5 py-0.5 rounded-[4px] cursor-pointer"
+                  style={{ background: '#252B3C', color: '#3C4360' }}
+                >
+                  + edit
+                </span>
               </div>
             </div>
           );
         })}
       </div>
 
-      <button
-        onClick={handleDone}
-        className="w-full py-3 rounded-lg bg-accent text-bg1 font-semibold text-sm hover:bg-accent/90 transition-colors"
-      >
-        Done · Activate {enabled.size} rule{enabled.size !== 1 ? 's' : ''}
-      </button>
+      {/* Bottom buttons */}
+      <div className="flex gap-2">
+        <button
+          className="flex-1 py-2.5 rounded-[9px] text-[12.5px] text-ter"
+          style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
+          onClick={onDone}
+        >
+          Skip all
+        </button>
+        <button
+          onClick={handleDone}
+          className="flex-[2] py-2.5 rounded-[9px] text-[13px] font-bold"
+          style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
+        >
+          Done · Activate {enabled.size} rule{enabled.size !== 1 ? 's' : ''}
+        </button>
+      </div>
     </div>
   );
 }

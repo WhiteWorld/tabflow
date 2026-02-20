@@ -3,6 +3,7 @@ import type { RuntimeState } from '../../shared/types';
 
 const DEFAULT_RUNTIME: RuntimeState = {
   managedTabs: {},
+  tabCreatedAt: {},
   lastUserInteractionAt: 0,
   pendingUndoGroup: null,
 };
@@ -17,6 +18,7 @@ export function useRuntime() {
         ...DEFAULT_RUNTIME,
         ...stored,
         managedTabs: stored?.managedTabs ?? {},
+        tabCreatedAt: stored?.tabCreatedAt ?? {},
       });
     });
 
@@ -27,6 +29,7 @@ export function useRuntime() {
           ...DEFAULT_RUNTIME,
           ...val,
           managedTabs: val.managedTabs ?? {},
+          tabCreatedAt: val.tabCreatedAt ?? {},
         });
       }
     };

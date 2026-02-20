@@ -22,7 +22,9 @@ export default function App() {
       chrome.storage.local.get('pendingIntent').then(d => {
         if (d.pendingIntent) {
           chrome.storage.local.remove('pendingIntent');
-          setPage('rules');
+          const target = d.pendingIntent as string;
+          if (target === 'settings') setPage('settings');
+          else setPage('rules');
         } else if (s?.isFirstInstall && !s?.onboardingComplete) {
           setPage('welcome');
         }
@@ -35,6 +37,12 @@ export default function App() {
       }
       if (changes.settings?.newValue) {
         setSettings(changes.settings.newValue as Settings);
+      }
+      if (changes.pendingIntent?.newValue) {
+        const target = changes.pendingIntent.newValue as string;
+        chrome.storage.local.remove('pendingIntent');
+        if (target === 'settings') setPage('settings');
+        else if (target === 'rules') setPage('rules');
       }
     };
     chrome.storage.onChanged.addListener(handler);

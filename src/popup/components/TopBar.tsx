@@ -4,6 +4,16 @@ interface TopBarProps {
 }
 
 export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
+  const openOptions = async () => {
+    await chrome.storage.local.set({ pendingIntent: 'settings' });
+    chrome.runtime.openOptionsPage();
+  };
+
+  const openRules = async () => {
+    await chrome.storage.local.set({ pendingIntent: 'rules' });
+    chrome.runtime.openOptionsPage();
+  };
+
   return (
     <div className="flex items-center justify-between px-3.5 py-2.5 bg-bg2 border-b border-white/[0.06]">
       {/* Logo */}
@@ -17,14 +27,28 @@ export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
         <span className="font-bold text-[13px] text-pri">TabFlow</span>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-3">
+      {/* Stats + Settings */}
+      <div className="flex items-center gap-2">
         <span className="font-mono text-[10px] text-ter">
           <b className="text-sec">{tabCount}</b> tabs
         </span>
-        <span className="font-mono text-[10px] text-ter">
+        <button
+          onClick={openRules}
+          className="font-mono text-[10px] text-ter hover:text-accent transition-colors"
+          title="Manage rules"
+        >
           <b className="text-sec">{ruleCount}</b> rules
-        </span>
+        </button>
+        <button
+          onClick={openOptions}
+          className="ml-1 w-6 h-6 flex items-center justify-center rounded-[6px] text-ter hover:text-pri hover:bg-white/[0.06] transition-colors"
+          title="Settings"
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+            <path fillRule="evenodd" d="M6.5 1a.5.5 0 0 0-.488.392L5.72 2.77a5.5 5.5 0 0 0-.914.527l-1.348-.39a.5.5 0 0 0-.577.24L1.88 4.62a.5.5 0 0 0 .116.627l1.07.9a5.6 5.6 0 0 0 0 1.706l-1.07.9a.5.5 0 0 0-.116.627l1 1.473a.5.5 0 0 0 .577.24l1.348-.39c.285.2.59.375.914.527l.292 1.378A.5.5 0 0 0 6.5 13h3a.5.5 0 0 0 .488-.392l.292-1.378a5.5 5.5 0 0 0 .914-.527l1.348.39a.5.5 0 0 0 .577-.24l1-1.473a.5.5 0 0 0-.116-.627l-1.07-.9a5.6 5.6 0 0 0 0-1.706l1.07-.9a.5.5 0 0 0 .116-.627l-1-1.473a.5.5 0 0 0-.577-.24l-1.348.39a5.5 5.5 0 0 0-.914-.527L9.488 1.392A.5.5 0 0 0 9.5 1h-3Zm-1 7a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0Z" clipRule="evenodd"/>
+          </svg>
+        </button>
       </div>
     </div>
   );

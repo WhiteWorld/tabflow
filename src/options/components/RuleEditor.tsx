@@ -5,6 +5,7 @@ import { normalizeDomain } from '../../shared/utils';
 
 interface RuleEditorProps {
   rule: Rule | null;
+  existingRules?: Rule[];
   onSave: (rule: Rule) => void;
   onCancel: () => void;
 }
@@ -16,7 +17,7 @@ const TIME_PRESETS = [
   { label: '2 hours', minutes: 120 },
 ];
 
-export default function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
+export default function RuleEditor({ rule, existingRules = [], onSave, onCancel }: RuleEditorProps) {
   const [domainsInput, setDomainsInput] = useState(rule?.domains.join(', ') ?? '');
   const [minutes, setMinutes] = useState(rule?.trigger.minutes ?? 30);
   const [triggerType, setTriggerType] = useState<'inactive' | 'openDuration'>(
@@ -28,6 +29,13 @@ export default function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) 
     .split(',')
     .map(d => normalizeDomain(d))
     .filter(Boolean);
+
+  // Find conflicts: domains already covered by other rules (excluding the rule being edited)
+  const conflicts = domains.flatMap(d =>
+    existingRules
+      .filter(r => r.id !== rule?.id && r.enabled && r.domains.some(rd => rd === d || d.endsWith('.' + rd) || rd.endsWith('.' + d)))
+      .map(r => ({ domain: d, ruleName: r.name }))
+  );
 
   const handleSave = () => {
     if (domains.length === 0) return;
@@ -50,121 +58,129 @@ export default function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4.5">
+
       {/* Step 1: Domain */}
       <div>
-        <div className="text-xs font-semibold text-sec uppercase tracking-wider mb-2">
-          Step 1 — Which site?
-        </div>
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Site</div>
         <input
           type="text"
           value={domainsInput}
           onChange={e => setDomainsInput(e.target.value)}
-          placeholder="e.g. reddit.com, twitter.com"
-          className="w-full bg-bg3 text-sm text-pri border border-white/[0.06] rounded-lg px-3 py-2.5 outline-none focus:border-white/[0.12] placeholder-ter"
+          placeholder="youtube.com, bilibili.com"
+          className="w-full font-mono text-[12.5px] text-pri outline-none px-3 py-2.5 rounded-[7px]"
+          style={{
+            background: '#1C2230',
+            border: `1px solid ${conflicts.length > 0 ? 'rgba(240,160,48,0.4)' : 'rgba(255,255,255,0.06)'}`,
+            color: '#EAF0FA',
+          }}
         />
-        <div className="text-[10px] text-ter mt-1">Comma-separated · Subdomains auto-matched</div>
+        <div className="text-[9.5px] text-ter mt-1">Separate with commas. Subdomains auto-matched.</div>
+        {conflicts.length > 0 && (
+          <div
+            className="mt-2 px-3 py-2 rounded-[7px] text-[11px] text-warn"
+            style={{ background: 'rgba(240,160,48,0.10)', border: '1px solid rgba(240,160,48,0.2)' }}
+          >
+            {[...new Map(conflicts.map(c => [c.domain, c])).values()].map(c => (
+              <div key={c.domain}>
+                <b className="font-mono">{c.domain}</b> already covered by <b>{c.ruleName}</b>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Step 2: Time */}
       <div>
-        <div className="text-xs font-semibold text-sec uppercase tracking-wider mb-2">
-          Step 2 — Close after
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Close after</div>
+        <div className="flex gap-1.5">
+          {TIME_PRESETS.map(preset => {
+            const isSelected = minutes === preset.minutes && !customMinutes;
+            return (
+              <button
+                key={preset.minutes}
+                onClick={() => { setMinutes(preset.minutes); setCustomMinutes(''); }}
+                className="flex-1 py-2.5 text-center text-[12px] font-semibold rounded-[7px] transition-colors"
+                style={{
+                  border: `1px solid ${isSelected ? '#3CE882' : 'rgba(255,255,255,0.06)'}`,
+                  background: isSelected ? 'rgba(60,232,130,0.12)' : '#1C2230',
+                  color: isSelected ? '#3CE882' : '#9AA4BD',
+                }}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {TIME_PRESETS.map(preset => (
-            <button
-              key={preset.minutes}
-              onClick={() => { setMinutes(preset.minutes); setCustomMinutes(''); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                minutes === preset.minutes && !customMinutes
-                  ? 'bg-accent text-bg1'
-                  : 'bg-bg3 text-sec hover:bg-bg4 border border-white/[0.06]'
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
+        {/* Custom time input */}
+        <div className="flex items-center gap-2 mt-2">
           <input
             type="number"
+            min={1}
             value={customMinutes}
             onChange={e => {
-              setCustomMinutes(e.target.value);
-              const n = Number(e.target.value);
+              const v = e.target.value;
+              setCustomMinutes(v);
+              const n = Number(v);
               if (n > 0) setMinutes(n);
             }}
-            placeholder="Custom min"
-            className="w-24 bg-bg3 text-xs text-pri border border-white/[0.06] rounded-lg px-2 py-1.5 outline-none focus:border-white/[0.12] placeholder-ter"
+            placeholder="Custom"
+            className="font-mono text-[12px] text-pri outline-none px-2.5 py-1.5 rounded-[7px] w-24"
+            style={{
+              background: '#1C2230',
+              border: `1px solid ${customMinutes ? '#3CE882' : 'rgba(255,255,255,0.06)'}`,
+              color: '#EAF0FA',
+            }}
           />
+          <span className="text-[11px] text-ter">min</span>
+          {customMinutes && (
+            <span className="text-[11px] font-semibold text-accent">= {Number(customMinutes) >= 60 ? `${Math.floor(Number(customMinutes) / 60)}h${Number(customMinutes) % 60 ? ` ${Number(customMinutes) % 60}m` : ''}` : `${customMinutes}min`}</span>
+          )}
         </div>
       </div>
 
       {/* Step 3: Trigger type */}
       <div>
-        <div className="text-xs font-semibold text-sec uppercase tracking-wider mb-2">
-          Step 3 — Start counting when...
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Start timer when</div>
+        <div className="flex gap-1.5">
+          {[
+            { type: 'inactive' as const, label: 'Tab not viewed' },
+            { type: 'openDuration' as const, label: 'Tab open time' },
+          ].map(opt => {
+            const isSelected = triggerType === opt.type;
+            return (
+              <button
+                key={opt.type}
+                onClick={() => setTriggerType(opt.type)}
+                className="flex-1 py-2.5 px-2.5 text-center text-[11px] font-medium rounded-[7px] transition-colors leading-snug"
+                style={{
+                  border: `1px solid ${isSelected ? '#3CE882' : 'rgba(255,255,255,0.06)'}`,
+                  background: isSelected ? 'rgba(60,232,130,0.12)' : '#1C2230',
+                  color: isSelected ? '#3CE882' : '#9AA4BD',
+                }}
+              >
+                {isSelected ? '✓ ' : ''}{opt.label}
+              </button>
+            );
+          })}
         </div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => setTriggerType('inactive')}
-            className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
-              triggerType === 'inactive'
-                ? 'border-accent/30 bg-accent/5'
-                : 'border-white/[0.06] bg-bg3 hover:border-white/[0.12]'
-            }`}
-          >
-            <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${
-              triggerType === 'inactive' ? 'border-accent bg-accent' : 'border-ter'
-            }`} />
-            <div>
-              <div className={`text-xs font-semibold ${triggerType === 'inactive' ? 'text-accent' : 'text-pri'}`}>
-                I stop looking at it
-              </div>
-              <div className="text-[10px] text-ter mt-0.5">Counts from when you switch away</div>
-            </div>
-          </button>
-          <button
-            onClick={() => setTriggerType('openDuration')}
-            className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
-              triggerType === 'openDuration'
-                ? 'border-accent/30 bg-accent/5'
-                : 'border-white/[0.06] bg-bg3 hover:border-white/[0.12]'
-            }`}
-          >
-            <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${
-              triggerType === 'openDuration' ? 'border-accent bg-accent' : 'border-ter'
-            }`} />
-            <div>
-              <div className={`text-xs font-semibold ${triggerType === 'openDuration' ? 'text-accent' : 'text-pri'}`}>
-                It's been open (total)
-              </div>
-              <div className="text-[10px] text-ter mt-0.5">Counts from when the tab was opened</div>
-            </div>
-          </button>
-        </div>
-        <div className="text-[10px] text-ter mt-2">Most people pick the first option</div>
+        <div className="text-[9.5px] text-ter mt-1.5">"Tab not viewed" closes tabs you've forgotten about. "Tab open time" closes long-running tabs.</div>
       </div>
 
-      {/* Preview */}
-      {domains.length > 0 && (
-        <div className="bg-bg3 rounded-lg px-3 py-2 border border-white/[0.06]">
-          <div className="text-[10px] text-ter mb-0.5">Rule name (auto-generated)</div>
-          <div className="text-xs font-mono text-sec">{generateRuleName(domains, minutes)}</div>
-        </div>
-      )}
-
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-end pt-1">
         <button
           onClick={onCancel}
-          className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-ter border border-white/[0.06] hover:border-white/[0.12] transition-colors"
+          className="text-[12px] font-semibold text-sec px-4 py-2 rounded-[7px]"
+          style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          disabled={domains.length === 0}
-          className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-accent text-bg1 hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={domains.length === 0 || conflicts.length > 0}
+          className="text-[12px] font-semibold px-4 py-2 rounded-[7px] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
           Save Rule
         </button>
