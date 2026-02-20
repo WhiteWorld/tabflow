@@ -72,20 +72,32 @@ export default function TabList({ tabs, runtime, onManage }: TabListProps) {
     });
   };
 
+// Get favicon for a domain from the first tab in the group
+function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
+  const tabWithFavicon = tabs.find(t => t.favIconUrl);
+  return tabWithFavicon?.favIconUrl || null;
+}
+
   return (
     <div>
       {groups.map(({ domain, tabs: groupTabs }) => {
         const isCollapsed = collapsed.has(domain);
+        const favicon = getDomainFavicon(groupTabs);
         return (
           <div key={domain}>
-            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-bg1 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 px-3 py-2 bg-bg1 border-b border-white/[0.06]">
               <button
                 onClick={() => toggleGroup(domain)}
-                className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2.5 flex-1 min-w-0 hover:opacity-80 transition-opacity"
               >
-                <span className="text-[10px] text-ter">{isCollapsed ? '▶' : '▼'}</span>
+                <span className="text-[10px] text-ter w-3 text-center">{isCollapsed ? '▶' : '▼'}</span>
+                {favicon ? (
+                  <img src={favicon} alt="" className="w-4 h-4 rounded flex-shrink-0" />
+                ) : (
+                  <div className="w-4 h-4 rounded bg-bg4 flex-shrink-0" />
+                )}
                 <span className="font-mono text-xs text-sec flex-1 text-left truncate">{domain}</span>
-                <span className="font-mono text-[10px] text-ter">{groupTabs.length}</span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-bg3 text-ter">{groupTabs.length}</span>
               </button>
               <button
                 onClick={() => onManage(getRootDomain(domain))}
