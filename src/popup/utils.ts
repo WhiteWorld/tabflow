@@ -1,3 +1,5 @@
+import { extractRootDomain } from '../shared/utils';
+
 export function formatCountdown(ms: number): string {
   if (ms <= 0) return '0:00';
   const totalSeconds = Math.floor(ms / 1000);
@@ -21,7 +23,7 @@ export function getDomain(url: string): string {
 
 // Strip www. prefix so rules cover all subdomains (e.g. www.douban.com → douban.com)
 export function getRootDomain(hostname: string): string {
-  return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+  return extractRootDomain(hostname);
 }
 
 export function getTimeGroup(closedAt: number): 'today' | 'yesterday' | 'thisWeek' | 'older' {

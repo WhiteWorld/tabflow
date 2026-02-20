@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RuntimeState } from '../../shared/types';
 import TabRow from './TabRow';
 import { getRootDomain } from '../utils';
+import { extractRootDomain } from '../../shared/utils';
 
 interface TabListProps {
   tabs: chrome.tabs.Tab[];
@@ -18,9 +19,10 @@ function groupByDomain(tabs: chrome.tabs.Tab[]): GroupedTabs[] {
   const map = new Map<string, chrome.tabs.Tab[]>();
   for (const tab of tabs) {
     try {
-      const domain = new URL(tab.url ?? '').hostname;
-      if (!map.has(domain)) map.set(domain, []);
-      map.get(domain)!.push(tab);
+      const hostname = new URL(tab.url ?? '').hostname;
+      const rootDomain = extractRootDomain(hostname);
+      if (!map.has(rootDomain)) map.set(rootDomain, []);
+      map.get(rootDomain)!.push(tab);
     } catch {
       const key = 'other';
       if (!map.has(key)) map.set(key, []);

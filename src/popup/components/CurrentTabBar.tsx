@@ -20,9 +20,10 @@ export default function CurrentTabBar({ activeTab, runtime, onManage }: CurrentT
   const { domain, entry } = useMemo(() => {
     if (!activeTab?.url) return { domain: null, entry: null };
     try {
-      const d = new URL(activeTab.url).hostname;
+      const hostname = new URL(activeTab.url).hostname;
+      const rootDomain = getRootDomain(hostname);
       const e = activeTab.id ? runtime.managedTabs[activeTab.id] ?? null : null;
-      return { domain: d, entry: e };
+      return { domain: rootDomain, entry: e };
     } catch {
       return { domain: null, entry: null };
     }
