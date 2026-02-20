@@ -42,11 +42,9 @@ export default function CurrentTabBar({ activeTab, runtime, rules, onManage }: C
 
   const timeDisplay = isCounting
     ? (remaining > 0 ? formatCountdown(remaining) : 'closing...')
-    : entry?.pausedAt
-      ? formatCountdown(Math.max(0, entry.pausedAt - Date.now()))
-      : configuredMinutes !== null
-        ? (configuredMinutes >= 60 ? `${configuredMinutes / 60}h` : `${configuredMinutes}m`)
-        : null;
+    : configuredMinutes !== null
+      ? (configuredMinutes >= 60 ? `${configuredMinutes / 60}h` : `${configuredMinutes}m`)
+      : null;
 
   return (
     <div className="flex items-center gap-2 px-3.5 py-1.5 bg-bg3 border-b border-white/[0.06]">
