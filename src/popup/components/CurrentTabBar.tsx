@@ -37,7 +37,7 @@ export default function CurrentTabBar({ activeTab, runtime, onManage }: CurrentT
   const isUrgent = remaining > 0 && remaining < 5 * 60 * 1000;
 
   return (
-    <div className="flex items-center gap-2 px-3.5 py-1.5 bg-bg2 border-b border-white/[0.06]">
+    <div className="flex items-center gap-2 px-3.5 py-1.5 bg-bg3 border-b border-white/[0.06]">
       {/* Favicon */}
       {activeTab?.favIconUrl ? (
         <img
@@ -50,15 +50,17 @@ export default function CurrentTabBar({ activeTab, runtime, onManage }: CurrentT
         <div className="w-3.5 h-3.5 rounded-sm bg-bg4 flex-shrink-0" />
       )}
 
-      <span className="font-mono text-xs text-ter flex-1 truncate">{domain}</span>
+      <span className="font-mono text-[10.5px] text-ter flex-1 truncate">{domain}</span>
 
       {hasRule ? (
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded ${
-          isUrgent
-            ? 'bg-danger/10 border border-danger/20'
-            : 'bg-warn/10 border border-warn/20'
-        }`}>
-          <span className={`text-xs font-semibold font-mono ${isUrgent ? 'text-danger animate-blink' : 'text-warn'}`}>
+        <div
+          className="flex items-center gap-1 px-2 py-0.5 rounded-[5px]"
+          style={{
+            background: isUrgent ? 'rgba(232,69,90,0.12)' : 'rgba(240,160,48,0.12)',
+            border: `1px solid ${isUrgent ? 'rgba(232,69,90,0.15)' : 'rgba(240,160,48,0.15)'}`,
+          }}
+        >
+          <span className={`text-[10px] font-semibold font-mono ${isUrgent ? 'text-danger animate-blink' : 'text-warn'}`}>
             {entry.ruleName}
             {isCounting
               ? ` · ${remaining > 0 ? formatCountdown(remaining) : 'closing...'}`
@@ -68,10 +70,14 @@ export default function CurrentTabBar({ activeTab, runtime, onManage }: CurrentT
       ) : (
         <button
           onClick={() => onManage(getRootDomain(domain))}
-          className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent/10 border border-accent/20 hover:bg-accent/20 transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 rounded-[5px] cursor-pointer"
+          style={{
+            background: 'rgba(60,232,130,0.12)',
+            border: '1px solid rgba(60,232,130,0.2)',
+          }}
         >
-          <span className="text-xs">⚙️</span>
-          <span className="text-xs font-semibold text-accent">Manage</span>
+          <span className="text-[10px]">⚙️</span>
+          <span className="text-[10px] font-semibold text-accent">Manage</span>
         </button>
       )}
     </div>
