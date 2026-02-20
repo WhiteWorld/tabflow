@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Rule } from '../../shared/types';
 import { generateRuleName } from '../../shared/constants';
+import { normalizeDomain } from '../../shared/utils';
 
 interface RuleEditorProps {
   rule: Rule | null;
@@ -25,7 +26,7 @@ export default function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) 
 
   const domains = domainsInput
     .split(',')
-    .map(d => d.trim().toLowerCase())
+    .map(d => normalizeDomain(d))
     .filter(Boolean);
 
   const handleSave = () => {

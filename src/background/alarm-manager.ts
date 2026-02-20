@@ -1,11 +1,13 @@
 import type { Rule, ManagedTabEntry } from '../shared/types';
 import { loadRuntime, saveRuntime } from './runtime-state';
 import { getRules, getSettings } from '../shared/storage';
+import { normalizeDomain } from '../shared/utils';
 
 export function matchDomain(tabUrl: string, domain: string): boolean {
   try {
-    const hostname = new URL(tabUrl).hostname;
-    return hostname === domain || hostname.endsWith('.' + domain);
+    const hostname = normalizeDomain(new URL(tabUrl).hostname);
+    const d = normalizeDomain(domain);
+    return hostname === d || hostname.endsWith('.' + d);
   } catch {
     return false;
   }
