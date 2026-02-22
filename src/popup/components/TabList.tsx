@@ -45,7 +45,7 @@ export default function TabList({ tabs, runtime, onManage }: TabListProps) {
     );
   }
 
-  if (tabs.length <= 15) {
+  if (tabs.length <= 10) {
     return (
       <div className="py-1">
         {tabs.map(tab => (
@@ -60,7 +60,7 @@ export default function TabList({ tabs, runtime, onManage }: TabListProps) {
     );
   }
 
-  // Grouped view for >15 tabs
+  // Grouped view for >10 tabs
   const groups = groupByDomain(tabs);
 
   const toggleGroup = (domain: string) => {

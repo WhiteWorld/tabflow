@@ -70,7 +70,7 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
           className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
-          📐 Rules
+          🌐 Sites
         </div>
 
         <div
@@ -78,9 +78,9 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <div>
-            <div className="text-[12.5px] font-medium text-pri">Active Rules</div>
+            <div className="text-[12.5px] font-medium text-pri">Active Sites</div>
             <div className="text-[10px] text-faint mt-0.5">
-              {rules.filter(r => r.enabled).length} rules managing {rules.reduce((n, r) => n + r.domains.length, 0)} domains
+              {rules.filter(r => r.enabled).length} of {rules.length} sites enabled
             </div>
           </div>
           <button
@@ -180,14 +180,14 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
             className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
             style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           >
-            📤 Export Rules
+            📤 Export
           </button>
           <button
             onClick={handleImport}
             className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
             style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           >
-            📥 Import Rules
+            📥 Import
           </button>
           {confirmClear ? (
             <div className="flex gap-2 items-center ml-2">

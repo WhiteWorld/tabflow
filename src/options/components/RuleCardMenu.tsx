@@ -2,12 +2,11 @@ import { useEffect, useRef } from 'react';
 
 interface RuleCardMenuProps {
   onEdit: () => void;
-  onDuplicate: () => void;
   onDelete: () => void;
   onClose: () => void;
 }
 
-export default function RuleCardMenu({ onEdit, onDuplicate, onDelete, onClose }: RuleCardMenuProps) {
+export default function RuleCardMenu({ onEdit, onDelete, onClose }: RuleCardMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export default function RuleCardMenu({ onEdit, onDuplicate, onDelete, onClose }:
       ref={ref}
       className="absolute right-0 top-8 z-10 overflow-hidden"
       style={{
-        width: 140,
+        width: 120,
         background: '#1C2230',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 9,
@@ -34,8 +33,7 @@ export default function RuleCardMenu({ onEdit, onDuplicate, onDelete, onClose }:
     >
       {[
         { icon: '✏️', label: 'Edit', color: '#EAF0FA', onClick: onEdit },
-        { icon: '📋', label: 'Duplicate', color: '#EAF0FA', onClick: onDuplicate },
-        { icon: '🗑', label: 'Delete', color: '#E8455A', onClick: onDelete },
+        { icon: '🗑', label: 'Remove', color: '#E8455A', onClick: onDelete },
       ].map((item, k) => (
         <button
           key={item.label}

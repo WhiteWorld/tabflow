@@ -1,51 +1,58 @@
 import { useState } from 'react';
 import type { Rule } from '../../shared/types';
-import { RULE_TEMPLATES } from '../../shared/constants';
+import { PRESET_GROUPS, generateRuleName } from '../../shared/constants';
 
 interface QuickSetupPageProps {
   rules: Rule[];
   onDone: () => void;
 }
 
-export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
-  // Find template rules by name
-  const templateRules = rules.filter(r => r.source === 'template');
+export default function QuickSetupPage({ onDone }: QuickSetupPageProps) {
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
 
-  const handleToggle = (ruleId: string) => {
+  const handleToggle = (groupName: string) => {
     setEnabled(prev => {
       const next = new Set(prev);
-      if (next.has(ruleId)) next.delete(ruleId);
-      else next.add(ruleId);
+      if (next.has(groupName)) next.delete(groupName);
+      else next.add(groupName);
       return next;
     });
   };
 
   const handleDone = async () => {
-    // Enable selected template rules
-    const data = await chrome.storage.local.get('rules');
-    const allRules = (data.rules as Rule[]) ?? [];
-    const updated = allRules.map(r => ({
-      ...r,
-      enabled: enabled.has(r.id) ? true : r.enabled,
-    }));
-    await chrome.storage.local.set({ rules: updated });
+    const selectedGroups = PRESET_GROUPS.filter(g => enabled.has(g.name));
+    if (selectedGroups.length === 0) { onDone(); return; }
 
-    // Notify background for each enabled rule
-    for (const rule of updated.filter(r => enabled.has(r.id))) {
+    // Expand each group into per-domain rules
+    const newRules: Rule[] = selectedGroups.flatMap(group =>
+      group.domains.map(domain => ({
+        id: crypto.randomUUID(),
+        name: generateRuleName(domain, group.trigger.minutes),
+        enabled: true,
+        domains: [domain],
+        trigger: group.trigger,
+        action: 'closeStash' as const,
+        source: 'template' as const,
+        stats: { triggeredCount: 0 },
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }))
+    );
+
+    const data = await chrome.storage.local.get('rules');
+    const existing = (data.rules as Rule[]) ?? [];
+    await chrome.storage.local.set({ rules: [...existing, ...newRules] });
+
+    for (const rule of newRules) {
       await chrome.runtime.sendMessage({ type: 'RULE_CREATED', rule });
     }
 
     onDone();
   };
 
-  const displayTemplates = templateRules.length > 0 ? templateRules : RULE_TEMPLATES.map((t, i) => ({
-    ...t,
-    id: `template-${i}`,
-    stats: { triggeredCount: 0 },
-    createdAt: 0,
-    updatedAt: 0,
-  }));
+  const totalDomains = PRESET_GROUPS
+    .filter(g => enabled.has(g.name))
+    .reduce((n, g) => n + g.domains.length, 0);
 
   return (
     <div
@@ -60,17 +67,17 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
       {/* Header */}
       <div className="text-center mb-5">
         <div className="text-[18px] font-bold text-pri mb-1">⚡ Quick Setup</div>
-        <div className="text-[12.5px] text-ter">Toggle on the rules you want. You can customize them later.</div>
+        <div className="text-[12.5px] text-ter">Toggle on the presets you want. Each site is added individually.</div>
       </div>
 
-      {/* Template cards */}
+      {/* Preset group cards */}
       <div className="flex flex-col gap-2.5 mb-5">
-        {displayTemplates.map(rule => {
-          const isOn = enabled.has(rule.id);
+        {PRESET_GROUPS.map(group => {
+          const isOn = enabled.has(group.name);
           return (
             <div
-              key={rule.id}
-              onClick={() => handleToggle(rule.id)}
+              key={group.name}
+              onClick={() => handleToggle(group.name)}
               className="px-4 py-3.5 rounded-[11px] cursor-pointer transition-all"
               style={{
                 background: isOn ? 'rgba(60,232,130,0.06)' : '#151921',
@@ -78,8 +85,7 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
               }}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[13.5px] font-semibold text-pri">{rule.name}</span>
-                {/* Toggle */}
+                <span className="text-[13.5px] font-semibold text-pri">{group.name}</span>
                 <div
                   className="relative flex-shrink-0 transition-colors"
                   style={{
@@ -91,20 +97,13 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
                 >
                   <div
                     className="absolute bg-white rounded-full transition-all"
-                    style={{
-                      width: 14,
-                      height: 14,
-                      top: 2.5,
-                      left: isOn ? 17.5 : 2.5,
-                    }}
+                    style={{ width: 14, height: 14, top: 2.5, left: isOn ? 17.5 : 2.5 }}
                   />
                 </div>
               </div>
-              <div className="text-[11px] text-ter leading-snug mb-2">
-                {rule.trigger.type === 'inactive' ? 'inactive' : 'open'} {rule.trigger.minutes}min — auto-close matching tabs
-              </div>
+              <div className="text-[11px] text-ter leading-snug mb-2">{group.description}</div>
               <div className="flex gap-1.5 flex-wrap">
-                {rule.domains.map(d => (
+                {group.domains.map(d => (
                   <span
                     key={d}
                     className="font-mono text-[9.5px] px-1.5 py-0.5 rounded-[4px]"
@@ -113,12 +112,6 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
                     {d}
                   </span>
                 ))}
-                <span
-                  className="font-mono text-[9.5px] px-1.5 py-0.5 rounded-[4px] cursor-pointer"
-                  style={{ background: '#252B3C', color: '#3C4360' }}
-                >
-                  + edit
-                </span>
               </div>
             </div>
           );
@@ -139,7 +132,7 @@ export default function QuickSetupPage({ rules, onDone }: QuickSetupPageProps) {
           className="flex-[2] py-2.5 rounded-[9px] text-[13px] font-bold"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          Done · Activate {enabled.size} rule{enabled.size !== 1 ? 's' : ''}
+          {totalDomains > 0 ? `Done · Add ${totalDomains} sites` : 'Done'}
         </button>
       </div>
     </div>

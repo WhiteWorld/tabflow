@@ -8,8 +8,8 @@ import {
   handleAlarmFired,
   performUndo,
 } from './rule-engine';
-import { getRules, getSettings, setSettings, setRules } from '../shared/storage';
-import { RULE_TEMPLATES, STASH_CLEANUP_ALARM, UNDO_EXPIRE_ALARM } from '../shared/constants';
+import { getRules, getSettings, setSettings } from '../shared/storage';
+import { STASH_CLEANUP_ALARM, UNDO_EXPIRE_ALARM } from '../shared/constants';
 import type { MessageType, Rule } from '../shared/types';
 import { rebuildForRule } from './alarm-manager';
 
@@ -21,43 +21,9 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     settings.isFirstInstall = true;
     await setSettings(settings);
 
-    // Load template rules (disabled by default)
-    const rules: Rule[] = RULE_TEMPLATES.map(template => ({
-      ...template,
-      id: crypto.randomUUID(),
-      stats: { triggeredCount: 0 },
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    }));
-    await setRules(rules);
-
     // Open options page for onboarding
     chrome.runtime.openOptionsPage();
   }
-
-  // Register context menus (always on install/update)
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: 'manage-tab',
-      title: '⚙️ Manage this site',
-      contexts: ['action'],
-    });
-    chrome.contextMenus.create({
-      id: 'ai-analyze',
-      title: '✨ AI Analyze all tabs',
-      contexts: ['action'],
-    });
-    chrome.contextMenus.create({
-      id: 'sep',
-      type: 'separator',
-      contexts: ['action'],
-    });
-    chrome.contextMenus.create({
-      id: 'settings',
-      title: 'Settings',
-      contexts: ['action'],
-    });
-  });
 
   // Schedule stash cleanup alarm
   chrome.alarms.create(STASH_CLEANUP_ALARM, { periodInMinutes: 60 });
@@ -206,27 +172,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
     await handleAlarmFired(alarm);
   });
-});
-
-// ========== Context Menus ==========
-
-chrome.contextMenus.onClicked.addListener(async (info) => {
-  if (info.menuItemId === 'manage-tab') {
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (activeTab?.url) {
-      try {
-        const domain = new URL(activeTab.url).hostname;
-        await chrome.storage.local.set({ pendingIntent: { domain } });
-      } catch {
-        // ignore
-      }
-      chrome.runtime.openOptionsPage();
-    }
-  }
-
-  if (info.menuItemId === 'settings') {
-    chrome.runtime.openOptionsPage();
-  }
 });
 
 // ========== Message Handler ==========

@@ -83,8 +83,8 @@ export default function App() {
             </div>
             <nav className="flex items-center gap-1">
               {[
-                { id: 'rules' as const, label: 'Rules' },
                 { id: 'settings' as const, label: 'Settings' },
+                { id: 'rules' as const, label: 'Sites' },
               ].map(item => (
                 <button
                   key={item.id}

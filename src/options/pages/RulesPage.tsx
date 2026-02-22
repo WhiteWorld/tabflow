@@ -46,21 +46,6 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
     await chrome.runtime.sendMessage({ type: 'RULE_DELETED', ruleId });
   };
 
-  const handleDuplicate = async (rule: Rule) => {
-    const newRule: Rule = {
-      ...rule,
-      id: crypto.randomUUID(),
-      name: rule.name + ' (copy)',
-      enabled: false,
-      stats: { triggeredCount: 0 },
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    const data = await chrome.storage.local.get('rules');
-    const allRules = (data.rules as Rule[]) ?? [];
-    await chrome.storage.local.set({ rules: [...allRules, newRule] });
-  };
-
   const handleSave = async (rule: Rule) => {
     const data = await chrome.storage.local.get('rules');
     const allRules = (data.rules as Rule[]) ?? [];
@@ -81,21 +66,26 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[15px] font-bold text-pri">Auto-Close Rules</span>
+        <div>
+          <span className="text-[15px] font-bold text-pri">Sites</span>
+          {rules.length > 0 && (
+            <span className="ml-2 font-mono text-[10px] text-ter">{rules.length} configured</span>
+          )}
+        </div>
         <button
           onClick={handleCreate}
           className="text-[11px] font-semibold px-3 py-1.5 rounded-[7px]"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          + Create Rule
+          + Add Site
         </button>
       </div>
 
       {rules.length === 0 ? (
         <div className="text-center py-16 text-ter">
-          <div className="text-4xl mb-3">📋</div>
-          <div className="text-sm">No rules yet</div>
-          <div className="text-xs mt-1">Create a rule to start managing tabs automatically</div>
+          <div className="text-4xl mb-3">🌐</div>
+          <div className="text-sm">No sites configured</div>
+          <div className="text-xs mt-1">Add a site to start managing its tabs automatically</div>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -106,7 +96,6 @@ export default function RulesPage({ rules, settings }: RulesPageProps) {
               onToggle={handleToggle}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onDuplicate={handleDuplicate}
             />
           ))}
         </div>

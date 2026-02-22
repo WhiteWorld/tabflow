@@ -16,11 +16,6 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
   const domain = tab.url ? getDomain(tab.url) : '';
   const entry = tab.id ? runtime.managedTabs[tab.id] : null;
 
-  const handleClose = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (tab.id) await chrome.tabs.remove(tab.id);
-  };
-
   const handleManage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (domain) onManage(getRootDomain(domain));
@@ -104,15 +99,6 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
             )}
           </button>
         ) : null}
-        {hovered && (
-          <button
-            onClick={handleClose}
-            className="w-6 h-6 flex items-center justify-center rounded text-ter hover:text-danger transition-colors text-xs"
-            title="Close tab"
-          >
-            ✕
-          </button>
-        )}
       </div>
     </div>
   );

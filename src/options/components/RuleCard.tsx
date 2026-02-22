@@ -7,10 +7,9 @@ interface RuleCardProps {
   onToggle: (rule: Rule) => void;
   onEdit: (rule: Rule) => void;
   onDelete: (ruleId: string) => void;
-  onDuplicate: (rule: Rule) => void;
 }
 
-export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate }: RuleCardProps) {
+export default function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -22,14 +21,16 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
     }
   };
 
-  const domainSummary = rule.domains.length <= 2
+  // Domain display: show all domains
+  const domainDisplay = rule.domains.length <= 2
     ? rule.domains.join(', ')
     : `${rule.domains[0]} +${rule.domains.length - 1}`;
+
   const triggerLabel = rule.trigger.type === 'inactive' ? 'inactive' : 'open time';
   const timeLabel = rule.trigger.minutes >= 60
     ? `${rule.trigger.minutes / 60}h`
     : `${rule.trigger.minutes}m`;
-  const triggeredSuffix = rule.stats.triggeredCount > 0 ? ` · ${rule.stats.triggeredCount}× triggered` : '';
+  const triggeredSuffix = rule.stats.triggeredCount > 0 ? ` · closed ${rule.stats.triggeredCount}×` : '';
 
   return (
     <div
@@ -42,11 +43,11 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
       }}
     >
       <div className="flex items-center gap-2">
-        {/* Name + summary */}
+        {/* Domain + config summary */}
         <div className="flex-1 min-w-0">
-          <div className="text-[12.5px] font-semibold text-pri truncate">{rule.name}</div>
-          <div className="font-mono text-[10px] text-ter truncate mt-0.5">
-            {domainSummary} · {triggerLabel} {timeLabel}{triggeredSuffix}
+          <div className="text-[12.5px] font-semibold text-pri truncate font-mono">{domainDisplay}</div>
+          <div className="text-[10px] text-ter truncate mt-0.5">
+            close after {timeLabel} {triggerLabel}{triggeredSuffix}
           </div>
         </div>
 
@@ -87,7 +88,6 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
           {menuOpen && (
             <RuleCardMenu
               onEdit={() => { setMenuOpen(false); onEdit(rule); }}
-              onDuplicate={() => { setMenuOpen(false); onDuplicate(rule); }}
               onDelete={() => { setMenuOpen(false); handleDelete(); }}
               onClose={() => setMenuOpen(false)}
             />
@@ -101,9 +101,9 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete, onDuplicate
           className="flex items-center gap-3 mt-2.5 pt-2.5"
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
-          <span className="text-xs text-danger flex-1">Delete this rule?</span>
+          <span className="text-xs text-danger flex-1">Remove this site?</span>
           <button onClick={() => setConfirmDelete(false)} className="text-xs text-ter">Cancel</button>
-          <button onClick={() => onDelete(rule.id)} className="text-xs text-danger font-semibold">Delete</button>
+          <button onClick={() => onDelete(rule.id)} className="text-xs text-danger font-semibold">Remove</button>
         </div>
       )}
     </div>

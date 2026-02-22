@@ -19,7 +19,7 @@ export default function RuleSidebar({ rule, existingRules, onSave, onClose }: Ru
         onClick={onClose}
       />
 
-      {/* Panel — 384px per design spec */}
+      {/* Panel */}
       <div
         className="fixed right-0 top-0 bottom-0 z-50 flex flex-col"
         style={{
@@ -35,7 +35,7 @@ export default function RuleSidebar({ rule, existingRules, onSave, onClose }: Ru
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <h3 className="text-[16px] font-bold text-pri">
-            {rule ? 'Edit Rule' : 'New Rule'}
+            {rule ? 'Edit Site' : 'Add Site'}
           </h3>
           <button
             onClick={onClose}

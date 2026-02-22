@@ -27,30 +27,28 @@ function formatMinutes(minutes: number): string {
 function describeTrigger(
   type: 'inactive' | 'openDuration',
   minutes: number,
-  domains: string[]
+  domain: string
 ): string {
-  const site =
-    domains.length > 0
-      ? `${domains[0]}${domains.length > 1 ? ` +${domains.length - 1}` : ''} tabs`
-      : 'These tabs';
+  const site = domain ? `${domain} tabs` : 'These tabs';
   const time = formatMinutes(minutes);
   return type === 'inactive'
     ? `${site} will close ${time} after you switch away.`
     : `${site} will close ${time} after they were opened.`;
 }
 
-function tabMatchesDomains(tab: chrome.tabs.Tab, domains: string[]): boolean {
-  if (!tab.url) return false;
+function tabMatchesDomain(tab: chrome.tabs.Tab, domain: string): boolean {
+  if (!tab.url || !domain) return false;
   try {
     const hostname = extractRootDomain(new URL(tab.url).hostname);
-    return domains.some(d => hostname === d || hostname.endsWith('.' + d));
+    return hostname === domain || hostname.endsWith('.' + domain);
   } catch {
     return false;
   }
 }
 
 export default function RuleEditor({ rule, existingRules = [], onSave, onCancel }: RuleEditorProps) {
-  const [domainsInput, setDomainsInput] = useState(rule?.domains.join(', ') ?? '');
+  // Single domain input
+  const [domainInput, setDomainInput] = useState(rule?.domains[0] ?? '');
   const [minutes, setMinutes] = useState(rule?.trigger.minutes ?? 30);
   const [triggerType, setTriggerType] = useState<'inactive' | 'openDuration'>(
     rule?.trigger.type ?? 'inactive'
@@ -60,58 +58,63 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
   const [showMatchingTitles, setShowMatchingTitles] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const domains = domainsInput
-    .split(',')
-    .map(d => normalizeDomain(d))
-    .filter(Boolean);
+  const domain = normalizeDomain(domainInput);
 
-  // Find conflicts: domains already covered by other rules (excluding the rule being edited)
-  const conflicts = domains.flatMap(d =>
-    existingRules
-      .filter(r => r.id !== rule?.id && r.enabled && r.domains.some(rd => rd === d || d.endsWith('.' + rd) || rd.endsWith('.' + d)))
-      .map(r => ({ domain: d, ruleName: r.name, ruleId: r.id }))
-  );
+  // Validation
+  const domainError = (() => {
+    if (!domainInput.trim()) return null;
+    if (domainInput.includes(',')) return 'Enter one domain at a time';
+    if (domainInput.includes(' ')) return 'Domain cannot contain spaces';
+    if (domain && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(domain)) {
+      return 'Not a valid domain';
+    }
+    return null;
+  })();
+
+  // Find conflicts: domain already covered by another rule (excluding the rule being edited)
+  const conflicts = domain ? existingRules
+    .filter(r => r.id !== rule?.id && r.enabled && r.domains.some(rd => rd === domain || domain.endsWith('.' + rd) || rd.endsWith('.' + domain)))
+    .map(r => ({ ruleName: r.name, ruleId: r.id }))
+    : [];
 
   // Debounced matching tabs query
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (domains.length === 0) {
+    if (!domain) {
       setMatchingTabs([]);
       return;
     }
     debounceRef.current = setTimeout(async () => {
       const tabs = await chrome.tabs.query({});
-      setMatchingTabs(tabs.filter(t => tabMatchesDomains(t, domains)));
+      setMatchingTabs(tabs.filter(t => tabMatchesDomain(t, domain)));
     }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainsInput]);
+  }, [domainInput]);
 
   const handleSave = async () => {
-    if (domains.length === 0) return;
+    if (!domain) return;
 
     // Remove conflicting rules from storage before saving
     if (conflicts.length > 0) {
-      const conflictIds = [...new Set(conflicts.map(c => c.ruleId))];
+      const conflictIds = conflicts.map(c => c.ruleId);
       const data = await chrome.storage.local.get('rules');
       const allRules = (data.rules as Rule[]) ?? [];
       await chrome.storage.local.set({
         rules: allRules.filter(r => !conflictIds.includes(r.id)),
       });
-      // Notify background SW to cancel alarms for removed rules
       await Promise.all(
         conflictIds.map(id => chrome.runtime.sendMessage({ type: 'RULE_DELETED', ruleId: id }))
       );
     }
 
-    const name = generateRuleName(domains, minutes);
     const saved: Rule = {
       id: rule?.id ?? crypto.randomUUID(),
-      name,
+      name: generateRuleName(domain, minutes),
       enabled: rule?.enabled ?? true,
-      domains,
+      domains: [domain],
       trigger: { type: triggerType, minutes },
       action: 'closeStash',
       source: rule?.source ?? 'manual',
@@ -124,32 +127,32 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
   };
 
   const hasConflicts = conflicts.length > 0;
-  const conflictRuleNames = [
-    ...new Map(conflicts.map(c => [c.ruleId, c.ruleName])).values(),
-  ];
 
   return (
     <div className="flex flex-col gap-4.5">
 
-      {/* Step 1: Domain */}
+      {/* Domain */}
       <div>
-        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Site</div>
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Domain</div>
         <input
           type="text"
-          value={domainsInput}
-          onChange={e => setDomainsInput(e.target.value)}
-          placeholder="youtube.com, bilibili.com"
+          value={domainInput}
+          onChange={e => setDomainInput(e.target.value)}
+          placeholder="youtube.com"
           className="w-full font-mono text-[12.5px] text-pri outline-none px-3 py-2.5 rounded-[7px]"
           style={{
             background: '#1C2230',
-            border: `1px solid ${hasConflicts ? 'rgba(240,160,48,0.4)' : 'rgba(255,255,255,0.06)'}`,
+            border: `1px solid ${domainError ? 'rgba(244,91,105,0.5)' : hasConflicts ? 'rgba(240,160,48,0.4)' : 'rgba(255,255,255,0.06)'}`,
             color: '#EAF0FA',
           }}
         />
-        <div className="text-[9.5px] text-ter mt-1">Separate with commas. Subdomains auto-matched.</div>
+        <div className="text-[9.5px] text-ter mt-1">Subdomains auto-matched.</div>
+        {domainError && (
+          <div className="text-[9.5px] text-danger mt-1">{domainError}</div>
+        )}
 
         {/* Matching tabs count */}
-        {domains.length > 0 && (
+        {domain && (
           <div className="mt-1">
             {matchingTabs.length > 0 ? (
               <button
@@ -183,19 +186,15 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
             className="mt-2 px-3 py-2 rounded-[7px] text-[11px] text-warn"
             style={{ background: 'rgba(240,160,48,0.10)', border: '1px solid rgba(240,160,48,0.2)' }}
           >
-            {[...new Map(conflicts.map(c => [c.domain, c])).values()].map(c => (
-              <div key={c.domain}>
-                <b className="font-mono">{c.domain}</b> already covered by <b>{c.ruleName}</b>
-              </div>
-            ))}
+            <b className="font-mono">{domain}</b> is already configured
             <div className="mt-1 text-[9.5px] text-warn/70">
-              Will remove: {conflictRuleNames.join(', ')}
+              Will replace: {conflicts.map(c => c.ruleName).join(', ')}
             </div>
           </div>
         )}
       </div>
 
-      {/* Step 2: Time */}
+      {/* Close after */}
       <div>
         <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Close after</div>
         <div className="flex gap-1.5">
@@ -217,7 +216,6 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
             );
           })}
         </div>
-        {/* Custom time input */}
         <div className="flex items-center gap-2 mt-2">
           <input
             type="number"
@@ -244,7 +242,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
         </div>
       </div>
 
-      {/* Step 3: Trigger type */}
+      {/* Start timer when */}
       <div>
         <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Start timer when</div>
         <div className="flex gap-1.5">
@@ -290,7 +288,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
 
         {/* Live trigger description */}
         <div className="text-[10px] text-accent/80 mt-2 italic">
-          {describeTrigger(triggerType, minutes, domains)}
+          {describeTrigger(triggerType, minutes, domain)}
         </div>
       </div>
 
@@ -305,11 +303,11 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
         </button>
         <button
           onClick={handleSave}
-          disabled={domains.length === 0}
+          disabled={!domain || !!domainError}
           className="text-[12px] font-semibold px-4 py-2 rounded-[7px] disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          {hasConflicts ? 'Replace & Save' : 'Save Rule'}
+          {hasConflicts ? 'Replace & Save' : 'Save'}
         </button>
       </div>
     </div>

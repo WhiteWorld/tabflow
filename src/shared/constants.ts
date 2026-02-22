@@ -1,29 +1,29 @@
 import type { Rule } from './types';
 
-export const RULE_TEMPLATES: Omit<Rule, 'id' | 'stats' | 'createdAt' | 'updatedAt'>[] = [
+// Preset groups for Quick Setup — each domain becomes its own rule on activation
+export const PRESET_GROUPS: {
+  name: string;
+  description: string;
+  domains: string[];
+  trigger: Rule['trigger'];
+}[] = [
   {
-    name: 'Social Media · 30min',
-    enabled: false,
+    name: 'Social Media',
+    description: 'close after 30 min inactive',
     domains: ['x.com', 'twitter.com', 'reddit.com', 'instagram.com', 'weibo.com'],
     trigger: { type: 'inactive', minutes: 30 },
-    action: 'closeStash',
-    source: 'template',
   },
   {
-    name: 'Video Sites · 1hr',
-    enabled: false,
+    name: 'Video',
+    description: 'close after 1 hr open',
     domains: ['youtube.com', 'bilibili.com'],
     trigger: { type: 'openDuration', minutes: 60 },
-    action: 'closeStash',
-    source: 'template',
   },
   {
-    name: 'Shopping · 20min',
-    enabled: false,
+    name: 'Shopping',
+    description: 'close after 20 min inactive',
     domains: ['amazon.com', 'taobao.com', 'jd.com'],
     trigger: { type: 'inactive', minutes: 20 },
-    action: 'closeStash',
-    source: 'template',
   },
 ];
 
@@ -38,9 +38,7 @@ export const INTENT_PRESETS = {
   important: { label: '📌 Important — don\'t close' },
 };
 
-export function generateRuleName(domains: string[], minutes: number): string {
+export function generateRuleName(domain: string, minutes: number): string {
   const time = minutes >= 60 ? `${minutes / 60}hr` : `${minutes}min`;
-  const domain = domains[0] ?? 'site';
-  const extra = domains.length > 1 ? ` +${domains.length - 1}` : '';
-  return `${domain}${extra} · ${time}`;
+  return `${domain} · ${time}`;
 }
