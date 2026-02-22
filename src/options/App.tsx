@@ -78,12 +78,7 @@ export default function App() {
         <header className="border-b border-white/[0.06] bg-bg2">
           <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div
-                className="w-6 h-6 rounded flex items-center justify-center text-bg1 text-sm font-bold"
-                style={{ background: 'linear-gradient(135deg, #3EE889, #28B860)' }}
-              >
-                ⚡
-              </div>
+              <img src="/icon-128.png" alt="TabFlow" className="rounded" style={{ width: 24, height: 24 }} />
               <span className="font-bold text-base text-pri">TabFlow</span>
             </div>
             <nav className="flex items-center gap-1">

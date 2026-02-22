@@ -28,17 +28,7 @@ export default function WelcomePage({ onContinue, onSkip }: WelcomePageProps) {
     <div className="flex flex-col items-center max-w-xl mx-auto">
       {/* Logo */}
       <div className="text-center mb-7">
-        <div
-          className="inline-flex items-center justify-center text-[26px] mb-3.5"
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #3CE882, #28B860)',
-          }}
-        >
-          ⚡
-        </div>
+        <img src="/icon-128.png" alt="TabFlow" className="mb-3.5" style={{ width: 56, height: 56, borderRadius: 14 }} />
         <h1
           className="text-[26px] font-extrabold tracking-tight mb-1.5"
           style={{

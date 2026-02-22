@@ -96,7 +96,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
             }}
           >
             {/* Group header */}
-            <div className="flex items-center gap-2.5 px-2.5 py-2">
+            <div className="group/header flex items-center gap-2.5 px-2.5 py-2">
               {/* Collapse toggle area */}
               <div
                 className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
@@ -114,10 +114,10 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                   </div>
                 </div>
               </div>
-              {/* Manage button — always visible on group header */}
+              {/* Manage button — icon always visible, text on hover */}
               <button
                 onClick={e => { e.stopPropagation(); onManage(getRootDomain(domain)); }}
-                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-[5px] flex-shrink-0 transition-colors"
+                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-[5px] flex-shrink-0 transition-all"
                 style={{
                   background: ruledCount > 0 ? 'rgba(60,232,130,0.12)' : 'transparent',
                   border: `1px solid ${ruledCount > 0 ? 'rgba(60,232,130,0.2)' : 'rgba(255,255,255,0.06)'}`,
@@ -128,6 +128,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                 {ruledCount > 0 && (
                   <span className="font-mono text-[10px] font-semibold text-accent ml-0.5">{ruledCount}</span>
                 )}
+                <span className="text-[11px] font-semibold text-accent hidden group-hover/header:inline">{t('tabrow_manage')}</span>
               </button>
               <span
                 className="text-[10px] text-ter flex-shrink-0 cursor-pointer transition-transform"
@@ -145,7 +146,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
               return (
                 <div
                   key={tab.id}
-                  className="flex items-center gap-2.5 cursor-pointer hover:bg-bg3 transition-colors"
+                  className="flex items-center gap-2.5 cursor-pointer hover:bg-[rgba(255,255,255,0.04)] transition-colors"
                   style={{ paddingLeft: 42, paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}
                   onClick={() => {
                     if (tab.id) chrome.tabs.update(tab.id, { active: true });

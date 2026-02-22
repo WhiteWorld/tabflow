@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { RuntimeState } from '../../shared/types';
 import { getDomain, getRootDomain } from '../utils';
+import { useT } from '../../shared/LangContext';
 
 interface TabRowProps {
   tab: chrome.tabs.Tab;
@@ -12,6 +13,7 @@ interface TabRowProps {
 export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowProps) {
   const [hovered, setHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const t = useT();
 
   const domain = tab.url ? getDomain(tab.url) : '';
   const entry = tab.id ? runtime.managedTabs[tab.id] : null;
@@ -93,7 +95,7 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
           >
             <span className="text-[11px]">⚙️</span>
             {hovered && (
-              <span className="text-[11px] font-semibold text-accent">Manage</span>
+              <span className="text-[11px] font-semibold text-accent">{t('tabrow_manage')}</span>
             )}
           </button>
         ) : null}
