@@ -20,7 +20,7 @@ export default function OnboardingBanner({ ruleCount, onDismiss }: OnboardingBan
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-[11.5px] font-semibold text-accent">
-          {ruleCount} rule{ruleCount !== 1 ? 's' : ''} active
+          {ruleCount} site{ruleCount !== 1 ? 's' : ''} active
         </div>
         <div className="text-[10px] text-ter">Matching tabs will auto-close when inactive.</div>
       </div>

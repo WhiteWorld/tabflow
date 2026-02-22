@@ -37,22 +37,22 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
     >
-      {/* Favicon 18×18 */}
+      {/* Favicon 22×22 */}
       <div
-        className="flex-shrink-0 flex items-center justify-center rounded-[5px] overflow-hidden"
-        style={{ width: 18, height: 18, background: 'rgba(255,255,255,0.08)' }}
+        className="flex-shrink-0 flex items-center justify-center rounded-[6px] overflow-hidden"
+        style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.08)' }}
       >
         {tab.favIconUrl && !imgError ? (
           <img
             src={tab.favIconUrl}
             alt=""
-            style={{ width: 18, height: 18 }}
+            style={{ width: 22, height: 22 }}
             onError={() => setImgError(true)}
           />
         ) : (
           <div
             className="flex items-center justify-center bg-bg4 text-ter"
-            style={{ width: 18, height: 18, fontSize: 9, borderRadius: 5 }}
+            style={{ width: 22, height: 22, fontSize: 11, borderRadius: 6 }}
           >
             🌐
           </div>
@@ -61,10 +61,10 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
 
       {/* Title + domain */}
       <div className="flex-1 min-w-0">
-        <div className="text-[11.5px] font-medium text-pri truncate leading-tight">
+        <div className="text-[12.5px] font-medium text-pri truncate leading-tight">
           {tab.title || domain}
         </div>
-        <div className="font-mono text-[9.5px] text-faint truncate">
+        <div className="font-mono text-[11px] text-ter truncate">
           {domain}
           {entry && entry.triggerAt > 0 && (
             <span className="ml-1 text-warn">· {entry.ruleName}</span>
@@ -72,18 +72,16 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
         </div>
       </div>
 
-      {/* Right side: rule pill OR manage button + close on hover */}
+      {/* Right side: rule pill OR manage button */}
       <div className="flex items-center gap-1 flex-shrink-0">
         {entry && entry.triggerAt > 0 ? (
-          /* Has active countdown — show pill */
           <span
-            className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px]"
-            style={{ background: 'rgba(240,160,48,0.12)', color: '#F0A030' }}
+            className="font-mono text-[11px] font-semibold px-1.5 py-0.5 rounded-[5px]"
+            style={{ background: 'rgba(240,160,48,0.15)', color: '#F0A030' }}
           >
             {entry.ruleName}
           </span>
         ) : !hideManage ? (
-          /* No rule — always show ⚙️ Manage button (faint, not just hover) */
           <button
             onClick={handleManage}
             className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-[5px] transition-colors"
@@ -93,9 +91,9 @@ export default function TabRow({ tab, runtime, onManage, hideManage }: TabRowPro
             }}
             title="Set rule for this site"
           >
-            <span className="text-[10px]">⚙️</span>
+            <span className="text-[11px]">⚙️</span>
             {hovered && (
-              <span className="text-[10px] font-semibold text-accent">Manage</span>
+              <span className="text-[11px] font-semibold text-accent">Manage</span>
             )}
           </button>
         ) : null}

@@ -100,6 +100,16 @@ export default function App() {
     await chrome.storage.local.set({ onboardingBannerDismissed: true });
   }, []);
 
+  // Auto-dismiss OnboardingBanner after 5s
+  useEffect(() => {
+    if (!onboardingDismissed && activeRuleCount > 0) {
+      const timer = setTimeout(() => {
+        handleDismissOnboarding();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [onboardingDismissed, activeRuleCount, handleDismissOnboarding]);
+
   // Filter function
   const filterBySearch = <T extends { title?: string; url?: string }>(
     items: T[],

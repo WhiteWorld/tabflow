@@ -73,7 +73,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
       <div className="px-4 py-10 text-center">
         <div className="text-2xl mb-2">🗂</div>
         <div className="text-[12px] font-medium text-ter">No stashed tabs yet</div>
-        <div className="text-[10.5px] text-faint mt-1">Auto-closed tabs will appear here</div>
+        <div className="text-[11px] text-faint mt-1">Auto-closed tabs will appear here</div>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
   // Stat row
   const statRow = (
     <div className="flex items-center justify-between px-3.5 py-1.5">
-      <span className="text-[10.5px] text-ter">
+      <span className="text-[11px] text-ter">
         {stash.length} tab{stash.length !== 1 ? 's' : ''} · nothing lost
       </span>
       {expiredCount > 0 && (
@@ -104,7 +104,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
       <FaviconCell url={item.favIconUrl} size={inGroup ? 16 : 18} />
       <div className="flex-1 min-w-0">
         <div className="text-[11.5px] font-medium text-pri truncate">{item.title || getDomain(item.url)}</div>
-        <div className="font-mono text-[9px] text-faint truncate">
+        <div className="font-mono text-[10.5px] text-ter truncate">
           {item.closedBy} · {formatRelativeTime(item.closedAt)}
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
         <div className="px-3 pb-2 flex flex-col gap-1.5">
           {stash.map(item => renderItem(item, false))}
         </div>
-        <div className="px-3.5 pb-3 pt-1 text-center text-[9.5px] text-faint">
+        <div className="px-3.5 pb-3 pt-1 text-center text-[10.5px] text-ter">
           Everything is recoverable for 7 days.
         </div>
       </div>

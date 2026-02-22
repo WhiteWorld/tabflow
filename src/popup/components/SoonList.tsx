@@ -88,8 +88,8 @@ export default function SoonList({ entries, tabs, search, rules }: SoonListProps
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <div className="text-[11.5px] font-medium text-pri truncate">{tab.title || domain}</div>
-                <div className="font-mono text-[9.5px] text-faint truncate">
+                <div className="text-[12.5px] font-medium text-pri truncate">{tab.title || domain}</div>
+                <div className="font-mono text-[11px] text-ter truncate">
                   {entry.ruleName}
                 </div>
               </div>
@@ -97,16 +97,16 @@ export default function SoonList({ entries, tabs, search, rules }: SoonListProps
               {/* Countdown pill */}
               {isPending ? (
                 <span
-                  className="flex-shrink-0 font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px]"
-                  style={{ background: '#252B3C', color: '#5C6482' }}
+                  className="flex-shrink-0 font-mono text-[11px] font-semibold px-1.5 py-0.5 rounded-[5px]"
+                  style={{ background: '#2C3347', color: '#6B7594' }}
                 >
                   {pendingLabel}
                 </span>
               ) : (
                 <span
-                  className={`flex-shrink-0 font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isUrgent ? 'animate-blink' : ''}`}
+                  className={`flex-shrink-0 font-mono text-[11px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isUrgent ? 'animate-blink' : ''}`}
                   style={{
-                    background: isUrgent ? 'rgba(232,69,90,0.12)' : 'rgba(240,160,48,0.12)',
+                    background: isUrgent ? 'rgba(232,69,90,0.15)' : 'rgba(240,160,48,0.15)',
                     color: isUrgent ? '#E8455A' : '#F0A030',
                   }}
                 >

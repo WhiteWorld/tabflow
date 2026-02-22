@@ -101,13 +101,13 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                 onClick={() => toggleGroup(domain)}
               >
                 {favicon ? (
-                  <img src={favicon} alt="" className="flex-shrink-0 rounded-[5px]" style={{ width: 18, height: 18, background: 'rgba(255,255,255,0.08)' }} />
+                  <img src={favicon} alt="" className="flex-shrink-0 rounded-[6px]" style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.08)' }} />
                 ) : (
-                  <div className="flex-shrink-0 rounded-[5px]" style={{ width: 18, height: 18, background: 'rgba(255,255,255,0.08)' }} />
+                  <div className="flex-shrink-0 rounded-[6px]" style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.08)' }} />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11.5px] font-semibold text-pri">{domain}</div>
-                  <div className="font-mono text-[9.5px] text-faint">
+                  <div className="text-[12px] font-semibold text-pri">{domain}</div>
+                  <div className="font-mono text-[10.5px] text-ter">
                     {groupTabs.length} tabs{ruledCount > 0 ? ` · ${ruledCount} ruled` : ''}
                   </div>
                 </div>
@@ -144,15 +144,15 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                 <div
                   key={tab.id}
                   className="flex items-center gap-2.5 cursor-pointer hover:bg-bg3 transition-colors"
-                  style={{ paddingLeft: 39, paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                  style={{ paddingLeft: 42, paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}
                   onClick={() => {
                     if (tab.id) chrome.tabs.update(tab.id, { active: true });
                     if (tab.windowId) chrome.windows.update(tab.windowId, { focused: true });
                   }}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-medium text-pri truncate">{tab.title || tab.url}</div>
-                    <div className="font-mono text-[9px] text-faint">
+                    <div className="text-[12px] font-medium text-pri truncate">{tab.title || tab.url}</div>
+                    <div className="font-mono text-[10px] text-ter">
                       {(() => {
                         const createdAt = (tab.id && runtime.tabCreatedAt[tab.id]) || (tab as chrome.tabs.Tab & { lastAccessed?: number }).lastAccessed;
                         return createdAt ? `opened ${formatRelativeTime(createdAt)}` : '';
