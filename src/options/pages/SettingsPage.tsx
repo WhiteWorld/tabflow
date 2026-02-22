@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Settings, Rule } from '../../shared/types';
+import { useT } from '../../shared/LangContext';
 
 interface SettingsPageProps {
   settings: Settings | null;
@@ -9,6 +10,7 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ settings, rules, onNavigate }: SettingsPageProps) {
   const [confirmClear, setConfirmClear] = useState(false);
+  const t = useT();
 
   const updateSettings = async (patch: Partial<Settings>) => {
     const data = await chrome.storage.local.get('settings');
@@ -16,12 +18,20 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
     await chrome.storage.local.set({ settings: { ...current, ...patch } });
   };
 
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(rules, null, 2)], { type: 'application/json' });
+  const handleExport = async () => {
+    const data = await chrome.storage.local.get(['rules', 'settings', 'stash']);
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      rules: data.rules ?? [],
+      settings: data.settings ?? {},
+      stash: data.stash ?? [],
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'tabflow-rules.json';
+    a.download = `tabflow-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -35,14 +45,49 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
       if (!file) return;
       const text = await file.text();
       try {
-        const imported = JSON.parse(text) as Rule[];
-        if (!Array.isArray(imported)) throw new Error('Invalid format');
-        const data = await chrome.storage.local.get('rules');
-        const existing = (data.rules as Rule[]) ?? [];
-        const merged = [...existing, ...imported.map(r => ({ ...r, id: crypto.randomUUID() }))];
-        await chrome.storage.local.set({ rules: merged });
+        const parsed = JSON.parse(text);
+
+        const mergeRules = (existing: Rule[], imported: Rule[]): Rule[] => {
+          // Existing domains take priority — skip imported rules whose domain already exists
+          const existingDomains = new Set(existing.flatMap(r => r.domains));
+          const newRules = imported
+            .filter(r => r.domains.every(d => !existingDomains.has(d)))
+            .map(r => ({ ...r, id: crypto.randomUUID() }));
+          return [...existing, ...newRules];
+        };
+
+        if (Array.isArray(parsed)) {
+          // Legacy: array of rules
+          const data = await chrome.storage.local.get('rules');
+          const existing = (data.rules as Rule[]) ?? [];
+          await chrome.storage.local.set({ rules: mergeRules(existing, parsed) });
+        } else if (parsed.version === 1) {
+          // Full backup
+          const data = await chrome.storage.local.get(['rules', 'stash', 'settings']);
+          const existingRules = (data.rules as Rule[]) ?? [];
+          const existingStash = (data.stash as object[]) ?? [];
+          // Stash: dedupe by url+closedAt to avoid duplicates
+          const stashKeys = new Set(existingStash.map((s: object) => {
+            const t = s as { url: string; closedAt: number };
+            return `${t.url}|${t.closedAt}`;
+          }));
+          const newStash = (parsed.stash ?? []).filter((s: { url: string; closedAt: number }) =>
+            !stashKeys.has(`${s.url}|${s.closedAt}`)
+          );
+          await chrome.storage.local.set({
+            rules: mergeRules(existingRules, parsed.rules ?? []),
+            stash: [...existingStash, ...newStash],
+            // Settings: only fill in keys not already set
+            ...(parsed.settings ? {
+              settings: { ...parsed.settings, ...((data as { settings?: object }).settings ?? {}) }
+            } : {}),
+          });
+        } else {
+          throw new Error('Unknown format');
+        }
+        window.location.reload();
       } catch {
-        alert('Invalid rules file');
+        alert(t('settings_import_error'));
       }
     };
     input.click();
@@ -64,13 +109,13 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
   return (
     <div className="max-w-[600px]">
 
-      {/* ── Rules ── */}
+      {/* ── Sites ── */}
       <section className="mb-7">
         <div
           className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
-          🌐 Sites
+          {t('settings_section_sites')}
         </div>
 
         <div
@@ -78,21 +123,21 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <div>
-            <div className="text-[12.5px] font-medium text-pri">Active Sites</div>
+            <div className="text-[12.5px] font-medium text-pri">{t('settings_active_sites')}</div>
             <div className="text-[10px] text-faint mt-0.5">
-              {rules.filter(r => r.enabled).length} of {rules.length} sites enabled
+              {t('settings_active_sites_count', { enabled: rules.filter(r => r.enabled).length, total: rules.length })}
             </div>
           </div>
           <button
             onClick={() => onNavigate('rules')}
             className="text-[12px] font-semibold text-accent"
           >
-            Manage →
+            {t('settings_manage')}
           </button>
         </div>
 
         <div className="py-2.5">
-          <div className="text-[12.5px] font-medium text-pri mb-1.5">Protected Domains</div>
+          <div className="text-[12.5px] font-medium text-pri mb-1.5">{t('settings_protected_domains')}</div>
           <div className="flex flex-wrap gap-1.5">
             {(settings?.protectedDomains ?? []).map(d => (
               <span
@@ -110,7 +155,7 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
               </span>
             ))}
           </div>
-          <div className="text-[9.5px] text-ter mt-1.5">These sites will never be auto-closed.</div>
+          <div className="text-[9.5px] text-ter mt-1.5">{t('settings_protected_hint')}</div>
         </div>
       </section>
 
@@ -120,33 +165,41 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
           className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
-          ⚙️ General
+          {t('settings_section_general')}
         </div>
 
         {[
           {
-            label: 'Language',
-            sub: 'Auto-detect from browser',
+            labelKey: 'settings_language' as const,
+            subKey: 'settings_language_sub' as const,
             value: settings?.language ?? 'auto',
             onChange: (v: string) => updateSettings({ language: v as Settings['language'] }),
-            options: [['auto', 'Auto-detect'], ['en', 'English'], ['zh_CN', '简体中文']] as [string, string][],
+            options: [
+              ['auto', t('settings_language_auto')],
+              ['en', t('settings_language_en')],
+              ['zh_CN', t('settings_language_zh_cn')],
+            ] as [string, string][],
           },
           {
-            label: 'Past Expiry',
-            sub: 'How long closed tabs are recoverable',
+            labelKey: 'settings_expiry' as const,
+            subKey: 'settings_expiry_sub' as const,
             value: String(settings?.stashExpiryDays ?? 7),
             onChange: (v: string) => updateSettings({ stashExpiryDays: Number(v) }),
-            options: [['7', '7 days'], ['14', '14 days'], ['30', '30 days']] as [string, string][],
+            options: [
+              ['7', t('settings_expiry_7')],
+              ['14', t('settings_expiry_14')],
+              ['30', t('settings_expiry_30')],
+            ] as [string, string][],
           },
         ].map((row, i, arr) => (
           <div
-            key={row.label}
+            key={row.labelKey}
             className="flex items-center justify-between py-2.5"
             style={{ borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
           >
             <div>
-              <div className="text-[12.5px] font-medium text-pri">{row.label}</div>
-              {row.sub && <div className="text-[10px] text-faint mt-0.5">{row.sub}</div>}
+              <div className="text-[12.5px] font-medium text-pri">{t(row.labelKey)}</div>
+              {row.subKey && <div className="text-[10px] text-faint mt-0.5">{t(row.subKey)}</div>}
             </div>
             <select
               value={row.value}
@@ -166,13 +219,13 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
         ))}
       </section>
 
-      {/* ── Data Management ── */}
+      {/* ── Data ── */}
       <section>
         <div
           className="flex items-center gap-1.5 text-[14px] font-bold text-pri pb-3.5 mb-3.5"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
-          💾 Data Management
+          {t('settings_section_data')}
         </div>
         <div className="flex gap-2">
           <button
@@ -180,19 +233,19 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
             className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
             style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           >
-            📤 Export
+            {t('settings_export')}
           </button>
           <button
             onClick={handleImport}
             className="text-[12px] font-medium text-sec px-4 py-2 rounded-[7px] transition-colors"
             style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           >
-            📥 Import
+            {t('settings_import')}
           </button>
           {confirmClear ? (
             <div className="flex gap-2 items-center ml-2">
-              <button onClick={() => setConfirmClear(false)} className="text-xs text-ter">Cancel</button>
-              <button onClick={handleClearAll} className="text-xs text-danger font-semibold">Confirm Delete</button>
+              <button onClick={() => setConfirmClear(false)} className="text-xs text-ter">{t('settings_clear_cancel')}</button>
+              <button onClick={handleClearAll} className="text-xs text-danger font-semibold">{t('settings_clear_confirm')}</button>
             </div>
           ) : (
             <button
@@ -200,7 +253,7 @@ export default function SettingsPage({ settings, rules, onNavigate }: SettingsPa
               className="text-[12px] font-medium text-danger px-4 py-2 rounded-[7px] transition-colors"
               style={{ background: 'rgba(232,69,90,0.12)', border: 'none' }}
             >
-              🗑 Clear All Data
+              {t('settings_clear_all')}
             </button>
           )}
         </div>

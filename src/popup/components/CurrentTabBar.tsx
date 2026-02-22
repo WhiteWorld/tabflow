@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import type { RuntimeState, Rule } from '../../shared/types';
 import { formatCountdown, getRootDomain } from '../utils';
+import { useT } from '../../shared/LangContext';
 
 interface CurrentTabBarProps {
   activeTab: chrome.tabs.Tab | null;
@@ -11,6 +12,7 @@ interface CurrentTabBarProps {
 
 export default function CurrentTabBar({ activeTab, runtime, rules, onManage }: CurrentTabBarProps) {
   const [, setTick] = useState(0);
+  const t = useT();
 
   // Tick every second for countdown refresh
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function CurrentTabBar({ activeTab, runtime, rules, onManage }: C
   const configuredMinutes = rule?.trigger.minutes ?? null;
 
   const timeDisplay = isCounting
-    ? (remaining > 0 ? formatCountdown(remaining) : 'closing...')
+    ? (remaining > 0 ? formatCountdown(remaining) : t('current_tab_closing'))
     : configuredMinutes !== null
       ? (configuredMinutes >= 60 ? `${configuredMinutes / 60}h` : `${configuredMinutes}m`)
       : null;
@@ -86,7 +88,7 @@ export default function CurrentTabBar({ activeTab, runtime, rules, onManage }: C
           }}
         >
           <span className="text-[11px]">⚙️</span>
-          <span className="text-[10.5px] font-semibold text-accent">Manage</span>
+          <span className="text-[10.5px] font-semibold text-accent">{t('current_tab_manage')}</span>
         </button>
       )}
     </div>

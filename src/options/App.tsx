@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Rule, Settings } from '../shared/types';
 import WelcomePage from './pages/WelcomePage';
 import QuickSetupPage from './pages/QuickSetupPage';
 import RulesPage from './pages/RulesPage';
 import SettingsPage from './pages/SettingsPage';
+import { LangContext } from '../shared/LangContext';
+import { createT, resolveLang } from '../shared/lang';
 
 type Page = 'welcome' | 'quickSetup' | 'rules' | 'settings';
 
@@ -49,6 +51,8 @@ export default function App() {
     return () => chrome.storage.onChanged.removeListener(handler);
   }, []);
 
+  const t = useMemo(() => createT(resolveLang(settings?.language ?? 'auto')), [settings?.language]);
+
   const handleWelcomeContinue = () => setPage('quickSetup');
   const handleWelcomeSkip = async () => {
     if (settings) {
@@ -67,6 +71,7 @@ export default function App() {
   };
 
   return (
+    <LangContext.Provider value={t}>
     <div className="min-h-screen bg-bg1 text-pri">
       {/* Nav header (not shown on welcome/quickSetup) */}
       {page !== 'welcome' && page !== 'quickSetup' && (
@@ -83,8 +88,8 @@ export default function App() {
             </div>
             <nav className="flex items-center gap-1">
               {[
-                { id: 'settings' as const, label: 'Settings' },
-                { id: 'rules' as const, label: 'Sites' },
+                { id: 'settings' as const, label: t('options_settings') },
+                { id: 'rules' as const, label: t('options_sites') },
               ].map(item => (
                 <button
                   key={item.id}
@@ -118,5 +123,6 @@ export default function App() {
         )}
       </main>
     </div>
+    </LangContext.Provider>
   );
 }

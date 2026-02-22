@@ -1,5 +1,6 @@
 import type { Rule, Settings } from '../../shared/types';
 import RuleEditor from './RuleEditor';
+import { useT } from '../../shared/LangContext';
 
 interface RuleSidebarProps {
   rule: Rule | null;
@@ -10,6 +11,7 @@ interface RuleSidebarProps {
 }
 
 export default function RuleSidebar({ rule, existingRules, onSave, onClose }: RuleSidebarProps) {
+  const t = useT();
   return (
     <>
       {/* Backdrop */}
@@ -35,7 +37,7 @@ export default function RuleSidebar({ rule, existingRules, onSave, onClose }: Ru
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           <h3 className="text-[16px] font-bold text-pri">
-            {rule ? 'Edit Site' : 'Add Site'}
+            {rule ? t('rulesidebar_edit') : t('rulesidebar_add')}
           </h3>
           <button
             onClick={onClose}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Rule } from '../../shared/types';
 import { generateRuleName } from '../../shared/constants';
 import { normalizeDomain, extractRootDomain } from '../../shared/utils';
+import { useT } from '../../shared/LangContext';
 
 interface RuleEditorProps {
   rule: Rule | null;
@@ -10,11 +11,11 @@ interface RuleEditorProps {
   onCancel: () => void;
 }
 
-const TIME_PRESETS = [
-  { label: '15 min', minutes: 15 },
-  { label: '30 min', minutes: 30 },
-  { label: '1 hour', minutes: 60 },
-  { label: '2 hours', minutes: 120 },
+const TIME_PRESETS_META = [
+  { labelKey: 'ruleeditor_preset_15' as const, minutes: 15 },
+  { labelKey: 'ruleeditor_preset_30' as const, minutes: 30 },
+  { labelKey: 'ruleeditor_preset_1h' as const, minutes: 60 },
+  { labelKey: 'ruleeditor_preset_2h' as const, minutes: 120 },
 ];
 
 function formatMinutes(minutes: number): string {
@@ -22,18 +23,6 @@ function formatMinutes(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return m ? `${h} hour${h > 1 ? 's' : ''} ${m} min` : `${h} hour${h > 1 ? 's' : ''}`;
-}
-
-function describeTrigger(
-  type: 'inactive' | 'openDuration',
-  minutes: number,
-  domain: string
-): string {
-  const site = domain ? `${domain} tabs` : 'These tabs';
-  const time = formatMinutes(minutes);
-  return type === 'inactive'
-    ? `${site} will close ${time} after you switch away.`
-    : `${site} will close ${time} after they were opened.`;
 }
 
 function tabMatchesDomain(tab: chrome.tabs.Tab, domain: string): boolean {
@@ -57,16 +46,17 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
   const [matchingTabs, setMatchingTabs] = useState<chrome.tabs.Tab[]>([]);
   const [showMatchingTitles, setShowMatchingTitles] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const t = useT();
 
   const domain = normalizeDomain(domainInput);
 
   // Validation
   const domainError = (() => {
     if (!domainInput.trim()) return null;
-    if (domainInput.includes(',')) return 'Enter one domain at a time';
-    if (domainInput.includes(' ')) return 'Domain cannot contain spaces';
+    if (domainInput.includes(',')) return t('ruleeditor_domain_error_comma');
+    if (domainInput.includes(' ')) return t('ruleeditor_domain_error_spaces');
     if (domain && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(domain)) {
-      return 'Not a valid domain';
+      return t('ruleeditor_domain_error_invalid');
     }
     return null;
   })();
@@ -133,7 +123,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
 
       {/* Domain */}
       <div>
-        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Domain</div>
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">{t('ruleeditor_domain_label')}</div>
         <input
           type="text"
           value={domainInput}
@@ -146,7 +136,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
             color: '#EAF0FA',
           }}
         />
-        <div className="text-[9.5px] text-ter mt-1">Subdomains auto-matched.</div>
+        <div className="text-[9.5px] text-ter mt-1">{t('ruleeditor_domain_hint')}</div>
         {domainError && (
           <div className="text-[9.5px] text-danger mt-1">{domainError}</div>
         )}
@@ -159,10 +149,10 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
                 onClick={() => setShowMatchingTitles(v => !v)}
                 className="text-[9.5px] font-medium text-accent hover:opacity-80 transition-opacity text-left"
               >
-                Matches {matchingTabs.length} open tab{matchingTabs.length !== 1 ? 's' : ''} ▾
+                {matchingTabs.length === 1 ? t('ruleeditor_matching_tab') : t('ruleeditor_matching_tabs', { n: matchingTabs.length })}
               </button>
             ) : (
-              <span className="text-[9.5px] text-ter">No open tabs match</span>
+              <span className="text-[9.5px] text-ter">{t('ruleeditor_no_matching')}</span>
             )}
             {showMatchingTitles && matchingTabs.length > 0 && (
               <div
@@ -173,7 +163,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
                   <div key={t.id} className="text-[9.5px] text-sec truncate">{t.title || t.url}</div>
                 ))}
                 {matchingTabs.length > 8 && (
-                  <div className="text-[9.5px] text-ter">+{matchingTabs.length - 8} more</div>
+                  <div className="text-[9.5px] text-ter">{t('ruleeditor_more', { n: matchingTabs.length - 8 })}</div>
                 )}
               </div>
             )}
@@ -186,9 +176,9 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
             className="mt-2 px-3 py-2 rounded-[7px] text-[11px] text-warn"
             style={{ background: 'rgba(240,160,48,0.10)', border: '1px solid rgba(240,160,48,0.2)' }}
           >
-            <b className="font-mono">{domain}</b> is already configured
+            {t('ruleeditor_already_configured', { domain })}
             <div className="mt-1 text-[9.5px] text-warn/70">
-              Will replace: {conflicts.map(c => c.ruleName).join(', ')}
+              {t('ruleeditor_will_replace', { names: conflicts.map(c => c.ruleName).join(', ') })}
             </div>
           </div>
         )}
@@ -196,9 +186,9 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
 
       {/* Close after */}
       <div>
-        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Close after</div>
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">{t('ruleeditor_close_after')}</div>
         <div className="flex gap-1.5">
-          {TIME_PRESETS.map(preset => {
+          {TIME_PRESETS_META.map(preset => {
             const isSelected = minutes === preset.minutes && !customMinutes;
             return (
               <button
@@ -211,7 +201,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
                   color: isSelected ? '#3CE882' : '#9AA4BD',
                 }}
               >
-                {preset.label}
+                {t(preset.labelKey)}
               </button>
             );
           })}
@@ -227,7 +217,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
               const n = Number(v);
               if (n > 0) setMinutes(n);
             }}
-            placeholder="Custom"
+            placeholder={t('ruleeditor_custom')}
             className="font-mono text-[12px] text-pri outline-none px-2.5 py-1.5 rounded-[7px] w-24"
             style={{
               background: '#1C2230',
@@ -235,7 +225,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
               color: '#EAF0FA',
             }}
           />
-          <span className="text-[11px] text-ter">min</span>
+          <span className="text-[11px] text-ter">{t('ruleeditor_min')}</span>
           {customMinutes && (
             <span className="text-[11px] font-semibold text-accent">= {Number(customMinutes) >= 60 ? `${Math.floor(Number(customMinutes) / 60)}h${Number(customMinutes) % 60 ? ` ${Number(customMinutes) % 60}m` : ''}` : `${customMinutes}min`}</span>
           )}
@@ -244,18 +234,18 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
 
       {/* Start timer when */}
       <div>
-        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">Start timer when</div>
+        <div className="text-[11px] font-semibold text-ter uppercase tracking-wide mb-1.5">{t('ruleeditor_start_timer')}</div>
         <div className="flex gap-1.5">
           {[
             {
               type: 'inactive' as const,
-              label: 'Tab not viewed',
-              sub: 'Timer starts when you switch away',
+              labelKey: 'ruleeditor_trigger_inactive_label' as const,
+              subKey: 'ruleeditor_trigger_inactive_sub' as const,
             },
             {
               type: 'openDuration' as const,
-              label: 'Tab open time',
-              sub: 'Timer starts when the tab opens',
+              labelKey: 'ruleeditor_trigger_duration_label' as const,
+              subKey: 'ruleeditor_trigger_duration_sub' as const,
             },
           ].map(opt => {
             const isSelected = triggerType === opt.type;
@@ -273,13 +263,13 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
                   className="text-[11px] font-medium"
                   style={{ color: isSelected ? '#3CE882' : '#9AA4BD' }}
                 >
-                  {isSelected ? '✓ ' : ''}{opt.label}
+                  {isSelected ? '✓ ' : ''}{t(opt.labelKey)}
                 </span>
                 <span
                   className="text-[9.5px]"
                   style={{ color: isSelected ? 'rgba(62,232,137,0.7)' : '#5A6478' }}
                 >
-                  {opt.sub}
+                  {t(opt.subKey)}
                 </span>
               </button>
             );
@@ -288,7 +278,10 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
 
         {/* Live trigger description */}
         <div className="text-[10px] text-accent/80 mt-2 italic">
-          {describeTrigger(triggerType, minutes, domain)}
+          {triggerType === 'inactive'
+            ? t('ruleeditor_desc_inactive', { site: domain ? `${domain} tabs` : t('ruleeditor_these_tabs'), time: formatMinutes(minutes) })
+            : t('ruleeditor_desc_duration', { site: domain ? `${domain} tabs` : t('ruleeditor_these_tabs'), time: formatMinutes(minutes) })
+          }
         </div>
       </div>
 
@@ -299,7 +292,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
           className="text-[12px] font-semibold text-sec px-4 py-2 rounded-[7px]"
           style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
         >
-          Cancel
+          {t('ruleeditor_cancel')}
         </button>
         <button
           onClick={handleSave}
@@ -307,7 +300,7 @@ export default function RuleEditor({ rule, existingRules = [], onSave, onCancel 
           className="text-[12px] font-semibold px-4 py-2 rounded-[7px] disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          {hasConflicts ? 'Replace & Save' : 'Save'}
+          {hasConflicts ? t('ruleeditor_replace_save') : t('ruleeditor_save')}
         </button>
       </div>
     </div>

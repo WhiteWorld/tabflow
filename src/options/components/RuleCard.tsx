@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Rule } from '../../shared/types';
 import RuleCardMenu from './RuleCardMenu';
+import { useT } from '../../shared/LangContext';
 
 interface RuleCardProps {
   rule: Rule;
@@ -12,6 +13,7 @@ interface RuleCardProps {
 export default function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const t = useT();
 
   const handleDelete = () => {
     if (confirmDelete) {
@@ -26,11 +28,11 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardP
     ? rule.domains.join(', ')
     : `${rule.domains[0]} +${rule.domains.length - 1}`;
 
-  const triggerLabel = rule.trigger.type === 'inactive' ? 'inactive' : 'open time';
+  const triggerLabel = rule.trigger.type === 'inactive' ? t('rulecard_trigger_inactive') : t('rulecard_trigger_duration');
   const timeLabel = rule.trigger.minutes >= 60
     ? `${rule.trigger.minutes / 60}h`
     : `${rule.trigger.minutes}m`;
-  const triggeredSuffix = rule.stats.triggeredCount > 0 ? ` · closed ${rule.stats.triggeredCount}×` : '';
+  const triggeredSuffix = rule.stats.triggeredCount > 0 ? ` ${t('rulecard_triggered', { n: rule.stats.triggeredCount })}` : '';
 
   return (
     <div
@@ -47,7 +49,7 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardP
         <div className="flex-1 min-w-0">
           <div className="text-[12.5px] font-semibold text-pri truncate font-mono">{domainDisplay}</div>
           <div className="text-[10px] text-ter truncate mt-0.5">
-            close after {timeLabel} {triggerLabel}{triggeredSuffix}
+            {t('rulecard_summary', { time: timeLabel, trigger: triggerLabel })}{triggeredSuffix}
           </div>
         </div>
 
@@ -101,9 +103,9 @@ export default function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardP
           className="flex items-center gap-3 mt-2.5 pt-2.5"
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
-          <span className="text-xs text-danger flex-1">Remove this site?</span>
-          <button onClick={() => setConfirmDelete(false)} className="text-xs text-ter">Cancel</button>
-          <button onClick={() => onDelete(rule.id)} className="text-xs text-danger font-semibold">Remove</button>
+          <span className="text-xs text-danger flex-1">{t('rulecard_delete_confirm')}</span>
+          <button onClick={() => setConfirmDelete(false)} className="text-xs text-ter">{t('rulecard_cancel')}</button>
+          <button onClick={() => onDelete(rule.id)} className="text-xs text-danger font-semibold">{t('rulecard_remove')}</button>
         </div>
       )}
     </div>

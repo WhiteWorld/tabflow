@@ -1,21 +1,25 @@
 import { useState } from 'react';
 import type { StashedTab } from '../../shared/types';
 import { formatRelativeTime, getDomain, getPastTimeGroup, type PastTimeGroup } from '../utils';
+import { useT } from '../../shared/LangContext';
+import type { Strings } from '../../shared/lang';
+
+const GROUP_LABEL_KEYS: Record<PastTimeGroup, keyof Strings> = {
+  justNow: 'pastlist_group_just_now',
+  lastHour: 'pastlist_group_last_hour',
+  today: 'pastlist_group_today',
+  twoDaysAgo: 'pastlist_group_two_days_ago',
+  older: 'pastlist_group_older',
+} as const;
 
 interface PastListProps {
   stash: StashedTab[];
   onRestore: (id: string) => void;
   onRestoreAll: (ids: string[]) => void;
+  stashExpiryDays: number;
 }
 
 const GROUP_ORDER: PastTimeGroup[] = ['justNow', 'lastHour', 'today', 'twoDaysAgo', 'older'];
-const GROUP_LABELS: Record<PastTimeGroup, string> = {
-  justNow: 'Just now',
-  lastHour: 'Last hour',
-  today: 'Today',
-  twoDaysAgo: '2 days ago',
-  older: 'Older',
-};
 // Newer groups expanded by default, older collapsed
 const DEFAULT_COLLAPSED = new Set<PastTimeGroup>(['twoDaysAgo', 'older']);
 
@@ -30,20 +34,21 @@ function FaviconCell({ url, size = 18 }: { url?: string; size?: number }) {
   );
 }
 
-function RestoreBtn({ onClick }: { onClick: () => void }) {
+function RestoreBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       onClick={onClick}
       className="flex-shrink-0 font-semibold text-[10px] rounded-[5px]"
       style={{ background: '#3CE882', color: '#080A0F', padding: '3px 8px' }}
     >
-      Restore
+      {label}
     </button>
   );
 }
 
-export default function PastList({ stash, onRestore, onRestoreAll }: PastListProps) {
+export default function PastList({ stash, onRestore, onRestoreAll, stashExpiryDays }: PastListProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set(DEFAULT_COLLAPSED));
+  const t = useT();
 
   const toggleGroup = (key: string) => {
     setCollapsed(prev => {
@@ -72,8 +77,8 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
     return (
       <div className="px-4 py-10 text-center">
         <div className="text-2xl mb-2">🗂</div>
-        <div className="text-[12px] font-medium text-ter">No stashed tabs yet</div>
-        <div className="text-[11px] text-faint mt-1">Auto-closed tabs will appear here</div>
+        <div className="text-[12px] font-medium text-ter">{t('pastlist_empty_title')}</div>
+        <div className="text-[11px] text-faint mt-1">{t('pastlist_empty_subtitle')}</div>
       </div>
     );
   }
@@ -82,11 +87,11 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
   const statRow = (
     <div className="flex items-center justify-between px-3.5 py-1.5">
       <span className="text-[11px] text-ter">
-        {stash.length} tab{stash.length !== 1 ? 's' : ''} · nothing lost
+        {stash.length === 1 ? t('pastlist_stat_one') : t('pastlist_stat', { n: stash.length })}
       </span>
       {expiredCount > 0 && (
         <button onClick={handleClearExpired} className="text-[10px] text-danger font-medium">
-          Clear {expiredCount} expired
+          {t('pastlist_clear_expired', { n: expiredCount })}
         </button>
       )}
     </div>
@@ -108,7 +113,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
           {item.closedBy} · {formatRelativeTime(item.closedAt)}
         </div>
       </div>
-      <RestoreBtn onClick={() => onRestore(item.id)} />
+      <RestoreBtn onClick={() => onRestore(item.id)} label={t('pastlist_restore')} />
     </div>
   );
 
@@ -121,7 +126,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
           {stash.map(item => renderItem(item, false))}
         </div>
         <div className="px-3.5 pb-3 pt-1 text-center text-[10.5px] text-ter">
-          Everything is recoverable for 7 days.
+          {t('pastlist_expiry', { n: stashExpiryDays })}
         </div>
       </div>
     );
@@ -157,9 +162,9 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
                 onClick={() => toggleGroup(g)}
               >
                 <span className={`flex-1 text-[11px] font-semibold ${isCollapsed ? 'text-ter' : 'text-pri'}`}>
-                  {GROUP_LABELS[g]}
+                  {t(GROUP_LABEL_KEYS[g])}
                   <span className="font-normal text-faint ml-1.5">
-                    {items.length} tab{items.length !== 1 ? 's' : ''}
+                    {items.length === 1 ? t('pastlist_group_tab', { n: 1 }) : t('pastlist_group_tabs', { n: items.length })}
                   </span>
                 </span>
                 {!isCollapsed && items.length > 1 && (
@@ -167,7 +172,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
                     onClick={e => handleRestoreAll(items, e)}
                     className="text-[9.5px] font-semibold text-accent mr-1"
                   >
-                    Restore all
+                    {t('pastlist_restore_all')}
                   </button>
                 )}
                 <span
@@ -188,7 +193,7 @@ export default function PastList({ stash, onRestore, onRestoreAll }: PastListPro
         })}
       </div>
       <div className="px-3.5 pb-3 pt-1 text-center text-[9.5px] text-faint">
-        Everything is recoverable for 7 days.
+        {t('pastlist_expiry', { n: stashExpiryDays })}
       </div>
     </div>
   );

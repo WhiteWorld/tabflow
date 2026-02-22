@@ -3,6 +3,7 @@ import type { RuntimeState } from '../../shared/types';
 import TabRow from './TabRow';
 import { getRootDomain, formatRelativeTime } from '../utils';
 import { extractRootDomain } from '../../shared/utils';
+import { useT } from '../../shared/LangContext';
 
 interface TabListProps {
   tabs: chrome.tabs.Tab[];
@@ -36,11 +37,12 @@ function groupByDomain(tabs: chrome.tabs.Tab[]): GroupedTabs[] {
 
 export default function TabList({ tabs, runtime, onManage }: TabListProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const t = useT();
 
   if (tabs.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-ter text-xs">
-        No tabs to show
+        {t('tablist_empty')}
       </div>
     );
   }
@@ -108,7 +110,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                 <div className="flex-1 min-w-0">
                   <div className="text-[12px] font-semibold text-pri">{domain}</div>
                   <div className="font-mono text-[10.5px] text-ter">
-                    {groupTabs.length} tabs{ruledCount > 0 ? ` · ${ruledCount} ruled` : ''}
+                    {groupTabs.length === 1 ? t('tablist_group_tab', { n: 1 }) : t('tablist_group_tabs', { n: groupTabs.length })}{ruledCount > 0 ? ` · ${t('tablist_group_ruled', { n: ruledCount })}` : ''}
                   </div>
                 </div>
               </div>
@@ -120,7 +122,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                   background: ruledCount > 0 ? 'rgba(60,232,130,0.12)' : 'transparent',
                   border: `1px solid ${ruledCount > 0 ? 'rgba(60,232,130,0.2)' : 'rgba(255,255,255,0.06)'}`,
                 }}
-                title="Set rule for this site"
+                title={t('tablist_manage_title')}
               >
                 <span className="text-[10px]">⚙️</span>
                 {ruledCount > 0 && (
@@ -155,7 +157,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                     <div className="font-mono text-[10px] text-ter">
                       {(() => {
                         const createdAt = (tab.id && runtime.tabCreatedAt[tab.id]) || (tab as chrome.tabs.Tab & { lastAccessed?: number }).lastAccessed;
-                        return createdAt ? `opened ${formatRelativeTime(createdAt)}` : '';
+                        return createdAt ? t('tablist_opened', { time: formatRelativeTime(createdAt) }) : '';
                       })()}
                     </div>
                   </div>
@@ -167,7 +169,7 @@ function getDomainFavicon(tabs: chrome.tabs.Tab[]): string | null {
                         color: urgent ? '#E8455A' : '#F0A030',
                       }}
                     >
-                      {remaining > 0 ? `${Math.floor(remaining / 60000)}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}` : 'closing...'}
+                      {remaining > 0 ? `${Math.floor(remaining / 60000)}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}` : t('tablist_closing')}
                     </span>
                   )}
                 </div>

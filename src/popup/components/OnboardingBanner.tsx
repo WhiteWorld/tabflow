@@ -1,9 +1,12 @@
+import { useT } from '../../shared/LangContext';
+
 interface OnboardingBannerProps {
   ruleCount: number;
   onDismiss: () => void;
 }
 
 export default function OnboardingBanner({ ruleCount, onDismiss }: OnboardingBannerProps) {
+  const t = useT();
   return (
     <div
       className="flex items-center gap-2.5 mx-3 mt-2 px-3 py-2.5 rounded-[9px]"
@@ -20,9 +23,9 @@ export default function OnboardingBanner({ ruleCount, onDismiss }: OnboardingBan
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-[11.5px] font-semibold text-accent">
-          {ruleCount} site{ruleCount !== 1 ? 's' : ''} active
+          {ruleCount === 1 ? t('onboarding_title_one') : t('onboarding_title', { n: ruleCount })}
         </div>
-        <div className="text-[10px] text-ter">Matching tabs will auto-close when inactive.</div>
+        <div className="text-[10px] text-ter">{t('onboarding_subtitle')}</div>
       </div>
       <button
         onClick={onDismiss}

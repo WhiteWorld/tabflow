@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useT } from '../../shared/LangContext';
 
 interface TopBarProps {
   tabCount: number;
@@ -27,6 +28,7 @@ function Tooltip({ text }: { text: string }) {
 
 export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
   const [tooltip, setTooltip] = useState<'tabs' | 'sites' | 'settings' | null>(null);
+  const t = useT();
 
   const openOptions = async () => {
     await chrome.storage.local.set({ pendingIntent: 'settings' });
@@ -60,9 +62,9 @@ export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
           onMouseLeave={() => setTooltip(null)}
         >
           <span className="font-mono text-[10px] text-ter cursor-default">
-            <b className="text-sec">{tabCount}</b> tabs
+            <b className="text-sec">{tabCount}</b> {t('topbar_tabs')}
           </span>
-          {tooltip === 'tabs' && <Tooltip text="Open tabs in this window" />}
+          {tooltip === 'tabs' && <Tooltip text={t('topbar_tabs_tooltip')} />}
         </div>
 
         {/* Sites count */}
@@ -75,9 +77,9 @@ export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
             onClick={openRules}
             className="font-mono text-[10px] text-ter hover:text-accent transition-colors"
           >
-            <b className="text-sec">{ruleCount}</b> sites
+            <b className="text-sec">{ruleCount}</b> {t('topbar_sites')}
           </button>
-          {tooltip === 'sites' && <Tooltip text="Sites configured — click to manage" />}
+          {tooltip === 'sites' && <Tooltip text={t('topbar_sites_tooltip')} />}
         </div>
 
         {/* Settings */}
@@ -95,7 +97,7 @@ export default function TopBar({ tabCount, ruleCount }: TopBarProps) {
               <path fillRule="evenodd" d="M6.5 1a.5.5 0 0 0-.488.392L5.72 2.77a5.5 5.5 0 0 0-.914.527l-1.348-.39a.5.5 0 0 0-.577.24L1.88 4.62a.5.5 0 0 0 .116.627l1.07.9a5.6 5.6 0 0 0 0 1.706l-1.07.9a.5.5 0 0 0-.116.627l1 1.473a.5.5 0 0 0 .577.24l1.348-.39c.285.2.59.375.914.527l.292 1.378A.5.5 0 0 0 6.5 13h3a.5.5 0 0 0 .488-.392l.292-1.378a5.5 5.5 0 0 0 .914-.527l1.348.39a.5.5 0 0 0 .577-.24l1-1.473a.5.5 0 0 0-.116-.627l-1.07-.9a5.6 5.6 0 0 0 0-1.706l1.07-.9a.5.5 0 0 0 .116-.627l-1-1.473a.5.5 0 0 0-.577-.24l-1.348.39a5.5 5.5 0 0 0-.914-.527L9.488 1.392A.5.5 0 0 0 9.5 1h-3Zm-1 7a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0Z" clipRule="evenodd"/>
             </svg>
           </button>
-          {tooltip === 'settings' && <Tooltip text="Settings" />}
+          {tooltip === 'settings' && <Tooltip text={t('topbar_settings_tooltip')} />}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Rule } from '../../shared/types';
 import { PRESET_GROUPS, generateRuleName } from '../../shared/constants';
+import { useT } from '../../shared/LangContext';
 
 interface QuickSetupPageProps {
   rules: Rule[];
@@ -9,6 +10,7 @@ interface QuickSetupPageProps {
 
 export default function QuickSetupPage({ onDone }: QuickSetupPageProps) {
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
+  const t = useT();
 
   const handleToggle = (groupName: string) => {
     setEnabled(prev => {
@@ -66,8 +68,8 @@ export default function QuickSetupPage({ onDone }: QuickSetupPageProps) {
     >
       {/* Header */}
       <div className="text-center mb-5">
-        <div className="text-[18px] font-bold text-pri mb-1">⚡ Quick Setup</div>
-        <div className="text-[12.5px] text-ter">Toggle on the presets you want. Each site is added individually.</div>
+        <div className="text-[18px] font-bold text-pri mb-1">{t('quicksetup_title')}</div>
+        <div className="text-[12.5px] text-ter">{t('quicksetup_subtitle')}</div>
       </div>
 
       {/* Preset group cards */}
@@ -125,14 +127,14 @@ export default function QuickSetupPage({ onDone }: QuickSetupPageProps) {
           style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           onClick={onDone}
         >
-          Skip all
+          {t('quicksetup_skip')}
         </button>
         <button
           onClick={handleDone}
           className="flex-[2] py-2.5 rounded-[9px] text-[13px] font-bold"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          {totalDomains > 0 ? `Done · Add ${totalDomains} sites` : 'Done'}
+          {totalDomains > 0 ? (totalDomains === 1 ? t('quicksetup_done_with_count_one') : t('quicksetup_done_with_count', { n: totalDomains })) : t('quicksetup_done')}
         </button>
       </div>
     </div>

@@ -1,26 +1,29 @@
+import { useT } from '../../shared/LangContext';
+
 interface WelcomePageProps {
   onContinue: () => void;
   onSkip: () => void;
 }
 
-const CARDS = [
+const CARDS_META = [
   {
     icon: '⏱',
     color: '#F0A030',
     bg: 'rgba(240,160,48,0.12)',
-    title: 'Auto-close by rules',
-    desc: 'Set time limits for any site. Tabs close automatically.',
+    titleKey: 'welcome_card1_title' as const,
+    descKey: 'welcome_card1_desc' as const,
   },
   {
     icon: '🛡',
     color: '#5090F0',
     bg: 'rgba(80,144,240,0.12)',
-    title: 'Nothing is lost',
-    desc: 'Every closed tab is saved to stash. Restore anytime.',
+    titleKey: 'welcome_card2_title' as const,
+    descKey: 'welcome_card2_desc' as const,
   },
 ];
 
 export default function WelcomePage({ onContinue, onSkip }: WelcomePageProps) {
+  const t = useT();
   return (
     <div className="flex flex-col items-center max-w-xl mx-auto">
       {/* Logo */}
@@ -44,19 +47,18 @@ export default function WelcomePage({ onContinue, onSkip }: WelcomePageProps) {
             WebkitTextFillColor: 'transparent',
           }}
         >
-          Welcome to TabFlow
+          {t('welcome_title')}
         </h1>
-        <p className="text-[13px] text-ter leading-relaxed">
-          Take control of your tabs. Set rules,<br />
-          and never lose a tab again.
+        <p className="text-[13px] text-ter leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+          {t('welcome_subtitle')}
         </p>
       </div>
 
       {/* Value cards — vertical */}
       <div className="flex flex-col gap-3 w-full mb-7">
-        {CARDS.map(card => (
+        {CARDS_META.map(card => (
           <div
-            key={card.title}
+            key={card.titleKey}
             className="flex items-center gap-3 px-3.5 py-3 rounded-[10px]"
             style={{ background: '#151921', border: '1px solid rgba(255,255,255,0.06)' }}
           >
@@ -67,8 +69,8 @@ export default function WelcomePage({ onContinue, onSkip }: WelcomePageProps) {
               {card.icon}
             </div>
             <div>
-              <div className="text-[13px] font-semibold text-pri mb-0.5">{card.title}</div>
-              <div className="text-[11.5px] text-ter leading-snug">{card.desc}</div>
+              <div className="text-[13px] font-semibold text-pri mb-0.5">{t(card.titleKey)}</div>
+              <div className="text-[11.5px] text-ter leading-snug">{t(card.descKey)}</div>
             </div>
           </div>
         ))}
@@ -81,14 +83,14 @@ export default function WelcomePage({ onContinue, onSkip }: WelcomePageProps) {
           className="w-full py-3 rounded-[10px] text-[14px] font-bold"
           style={{ background: '#3CE882', color: '#080A0F', border: 'none' }}
         >
-          Quick Setup (30 seconds) →
+          {t('welcome_continue')}
         </button>
         <button
           onClick={onSkip}
           className="text-[12px] text-faint"
           style={{ background: 'none', border: 'none' }}
         >
-          Skip, I'll explore on my own
+          {t('welcome_skip')}
         </button>
       </div>
     </div>

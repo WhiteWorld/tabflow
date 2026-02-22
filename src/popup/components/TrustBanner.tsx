@@ -1,3 +1,5 @@
+import { useT } from '../../shared/LangContext';
+
 interface TrustBannerProps {
   count: number;
   onDismiss: () => void;
@@ -5,6 +7,7 @@ interface TrustBannerProps {
 }
 
 export default function TrustBanner({ count, onDismiss, onShowPast }: TrustBannerProps) {
+  const t = useT();
   return (
     <div
       className="flex items-center gap-2.5 mx-3 mt-2 px-3 py-2.5 rounded-[9px]"
@@ -16,12 +19,12 @@ export default function TrustBanner({ count, onDismiss, onShowPast }: TrustBanne
       <span className="text-sm flex-shrink-0">✅</span>
       <div className="flex-1 min-w-0">
         <div className="text-[11.5px] font-semibold text-accent">
-          {count} tab{count !== 1 ? 's' : ''} cleaned · Nothing lost
+          {count === 1 ? t('trust_title_one') : t('trust_title', { n: count })}
         </div>
         <div className="text-[10px] text-ter">
-          Everything is safe in{' '}
+          {t('trust_subtitle_prefix')}{' '}
           <button onClick={onShowPast} className="text-accent font-semibold cursor-pointer">
-            Past
+            {t('trust_past_link')}
           </button>
         </div>
       </div>

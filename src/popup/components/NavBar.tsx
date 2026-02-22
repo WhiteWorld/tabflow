@@ -1,3 +1,5 @@
+import { useT } from '../../shared/LangContext';
+
 interface NavBarProps {
   view: 'now' | 'soon' | 'past';
   setView: (v: 'now' | 'soon' | 'past') => void;
@@ -7,10 +9,11 @@ interface NavBarProps {
 }
 
 export default function NavBar({ view, setView, nowCount, soonCount, pastCount }: NavBarProps) {
+  const t = useT();
   const tabs = [
-    { id: 'now' as const, label: 'Now', count: nowCount },
-    { id: 'soon' as const, label: 'Soon', count: soonCount },
-    { id: 'past' as const, label: 'Past', count: pastCount },
+    { id: 'now' as const, label: t('nav_now'), count: nowCount },
+    { id: 'soon' as const, label: t('nav_soon'), count: soonCount },
+    { id: 'past' as const, label: t('nav_past'), count: pastCount },
   ];
 
   return (

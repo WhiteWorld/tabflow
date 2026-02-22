@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ManagedTabEntry, Rule } from '../../shared/types';
 import { formatCountdown, getDomain } from '../utils';
+import { useT } from '../../shared/LangContext';
 
 interface SoonListProps {
   entries: ManagedTabEntry[];
@@ -11,6 +12,7 @@ interface SoonListProps {
 
 export default function SoonList({ entries, tabs, search, rules }: SoonListProps) {
   const [, setTick] = useState(0);
+  const t = useT();
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -42,7 +44,7 @@ export default function SoonList({ entries, tabs, search, rules }: SoonListProps
   if (filtered.length === 0) {
     return (
       <div className="px-4 py-8 text-center">
-        <div className="text-ter text-xs">No rule-managed tabs</div>
+        <div className="text-ter text-xs">{t('soonlist_empty')}</div>
       </div>
     );
   }
@@ -50,7 +52,7 @@ export default function SoonList({ entries, tabs, search, rules }: SoonListProps
   return (
     <div>
       <div className="px-3.5 py-2 text-[10px] text-ter">
-        These tabs will auto-close when their time is up.
+        {t('soonlist_hint')}
       </div>
       <div className="px-3 pb-2 flex flex-col gap-1.5">
         {filtered.map(entry => {
@@ -110,7 +112,7 @@ export default function SoonList({ entries, tabs, search, rules }: SoonListProps
                     color: isUrgent ? '#E8455A' : '#F0A030',
                   }}
                 >
-                  {remaining! > 0 ? formatCountdown(remaining!) : 'closing...'}
+                  {remaining! > 0 ? formatCountdown(remaining!) : t('soonlist_closing')}
                 </span>
               )}
             </div>

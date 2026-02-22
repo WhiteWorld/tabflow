@@ -1,9 +1,12 @@
+import { useT } from '../../shared/LangContext';
+
 interface UndoBannerProps {
   count: number;
   onUndo: () => void;
 }
 
 export default function UndoBanner({ count, onUndo }: UndoBannerProps) {
+  const t = useT();
   return (
     <>
       <div
@@ -20,15 +23,15 @@ export default function UndoBanner({ count, onUndo }: UndoBannerProps) {
           ⚡
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-bold text-warn">{count} tab{count !== 1 ? 's' : ''} just closed</div>
-          <div className="font-mono text-[9.5px] text-ter truncate">Safely saved to Past</div>
+          <div className="text-xs font-bold text-warn">{count === 1 ? t('undo_title_one') : t('undo_title', { n: count })}</div>
+          <div className="font-mono text-[9.5px] text-ter truncate">{t('undo_subtitle')}</div>
         </div>
         <button
           onClick={onUndo}
           className="px-3 py-1 rounded text-[11px] font-bold flex-shrink-0"
           style={{ background: '#F0A030', color: '#1A1C22' }}
         >
-          Undo
+          {t('undo_button')}
         </button>
       </div>
       {/* Countdown bar */}

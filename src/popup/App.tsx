@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTabs } from './hooks/useTabs';
 import { useRuntime } from './hooks/useRuntime';
 import { useRules } from './hooks/useRules';
@@ -14,6 +14,9 @@ import UndoBanner from './components/UndoBanner';
 import TrustBanner from './components/TrustBanner';
 import OnboardingBanner from './components/OnboardingBanner';
 import IntentCreator from './components/IntentCreator';
+import { LangContext } from '../shared/LangContext';
+import { createT, resolveLang } from '../shared/lang';
+import type { Settings } from '../shared/types';
 
 type View = 'now' | 'soon' | 'past';
 
@@ -30,13 +33,17 @@ export default function App() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(true);
   const [trustDismissed, setTrustDismissed] = useState(false);
   const [pendingCleanCount, setPendingCleanCount] = useState(0);
+  const [stashExpiryDays, setStashExpiryDays] = useState(7);
+  const [language, setLanguage] = useState<Settings['language']>('auto');
 
   // Load onboarding state and settings
   useEffect(() => {
     chrome.storage.local.get(['onboardingBannerDismissed', 'settings']).then(data => {
       setOnboardingDismissed(!!(data.onboardingBannerDismissed as boolean));
-      const settings = data.settings as { pendingCleanCount?: number } | undefined;
+      const settings = data.settings as { pendingCleanCount?: number; stashExpiryDays?: number } | undefined;
       setPendingCleanCount(settings?.pendingCleanCount ?? 0);
+      setStashExpiryDays(settings?.stashExpiryDays ?? 7);
+      setLanguage((settings?.language ?? 'auto') as Settings['language']);
     });
 
     const handler = (changes: { [key: string]: chrome.storage.StorageChange }) => {
@@ -44,8 +51,10 @@ export default function App() {
         setOnboardingDismissed(!!(changes.onboardingBannerDismissed.newValue as boolean));
       }
       if (changes.settings?.newValue) {
-        const s = changes.settings.newValue as { pendingCleanCount?: number };
+        const s = changes.settings.newValue as { pendingCleanCount?: number; stashExpiryDays?: number; language?: Settings['language'] };
         setPendingCleanCount(s.pendingCleanCount ?? 0);
+        setStashExpiryDays(s.stashExpiryDays ?? 7);
+        setLanguage(s.language ?? 'auto');
       }
     };
     chrome.storage.onChanged.addListener(handler);
@@ -124,7 +133,10 @@ export default function App() {
     );
   };
 
+  const t = useMemo(() => createT(resolveLang(language)), [language]);
+
   return (
+    <LangContext.Provider value={t}>
     <div className="bg-bg2 flex flex-col" style={{ width: 380, height: 580, overflow: 'hidden' }}>
       {intentDomain && (
         <IntentCreator
@@ -180,7 +192,7 @@ export default function App() {
         <SearchBar
           value={view === 'past' ? pastSearch : search}
           onChange={view === 'past' ? setPastSearch : setSearch}
-          placeholder={view === 'past' ? 'Search past tabs...' : 'Search tabs...'}
+          placeholder={view === 'past' ? t('search_placeholder_past') : t('search_placeholder_now')}
         />
 
         {view === 'now' && (
@@ -207,9 +219,11 @@ export default function App() {
             stash={filterBySearch(stash, pastSearch)}
             onRestore={restore}
             onRestoreAll={restoreAll}
+            stashExpiryDays={stashExpiryDays}
           />
         )}
       </div>
     </div>
+    </LangContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Rule } from '../../shared/types';
 import { generateRuleName } from '../../shared/constants';
+import { useT } from '../../shared/LangContext';
 
 interface IntentCreatorProps {
   domain: string;
@@ -11,28 +12,28 @@ interface IntentCreatorProps {
 
 type Intent = 'browsing' | 'returning' | 'important' | null;
 
-const INTENTS = [
+const INTENTS_META = [
   {
     id: 'browsing' as const,
     icon: '⏳',
-    label: 'Just browsing',
-    hint: 'Close after inactive',
+    labelKey: 'intent_browsing_label' as const,
+    hintKey: 'intent_browsing_hint' as const,
     defaultMinutes: 15,
     triggerType: 'inactive' as const,
   },
   {
     id: 'returning' as const,
     icon: '🔄',
-    label: "I'll come back later",
-    hint: 'Close after inactive',
+    labelKey: 'intent_returning_label' as const,
+    hintKey: 'intent_browsing_hint' as const,
     defaultMinutes: 120,
     triggerType: 'inactive' as const,
   },
   {
     id: 'important' as const,
     icon: '📌',
-    label: "Important — don't close",
-    hint: 'Never auto-close this site',
+    labelKey: 'intent_important_label' as const,
+    hintKey: 'intent_important_hint' as const,
     defaultMinutes: 0,
     triggerType: null,
   },
@@ -57,6 +58,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
   const [minutes, setMinutes] = useState<number>(15);
   const [customMinutes, setCustomMinutes] = useState('');
   const [loading, setLoading] = useState(false);
+  const t = useT();
 
   // Duplicate detection
   const existingRule = rules.find(
@@ -65,7 +67,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
 
   const handleSelectIntent = (id: Intent) => {
     setSelected(id);
-    const intent = INTENTS.find(i => i.id === id);
+    const intent = INTENTS_META.find(i => i.id === id);
     if (intent && intent.defaultMinutes > 0) {
       setMinutes(intent.defaultMinutes);
       setCustomMinutes('');
@@ -80,7 +82,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
       if (selected === 'important') {
         await chrome.runtime.sendMessage({ type: 'PROTECT_DOMAIN', domain });
       } else {
-        const intent = INTENTS.find(i => i.id === selected)!;
+        const intent = INTENTS_META.find(i => i.id === selected)!;
         const rule: Rule = {
           id: crypto.randomUUID(),
           name: generateRuleName(domain, minutes),
@@ -116,7 +118,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
     }
   };
 
-  const selectedIntent = INTENTS.find(i => i.id === selected);
+  const selectedIntent = INTENTS_META.find(i => i.id === selected);
   const showTimePicker = selected && selected !== 'important';
 
   const colorMap = {
@@ -151,7 +153,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
         >
           <div className="w-4 h-4 rounded-sm bg-bg4 flex items-center justify-center text-[8px] flex-shrink-0">🌐</div>
           <span className="font-semibold text-[12.5px] text-pri flex-1 truncate">{domain}</span>
-          <span className="font-mono text-[9px] text-ter">current tab</span>
+          <span className="font-mono text-[9px] text-ter">{t('intent_current_tab')}</span>
         </div>
 
         {/* Duplicate warning */}
@@ -161,16 +163,16 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
             style={{ background: 'rgba(240,160,48,0.12)', border: '1px solid rgba(240,160,48,0.2)' }}
           >
             Already covered by <b>{existingRule.name}</b>
-            <button onClick={() => handleSelectIntent('browsing')} className="ml-2 underline">Replace</button>
+            <button onClick={() => handleSelectIntent('browsing')} className="ml-2 underline">{t('intent_replace')}</button>
           </div>
         )}
 
         {/* Intent question */}
-        <div className="text-[12px] font-semibold text-sec mb-2.5">Why is this tab open?</div>
+        <div className="text-[12px] font-semibold text-sec mb-2.5">{t('intent_question')}</div>
 
         {/* Intent options */}
         <div className="flex flex-col gap-1.5 mb-3">
-          {INTENTS.map(intent => {
+          {INTENTS_META.map(intent => {
             const isSelected = selected === intent.id;
             const c = colorMap[intent.id];
             return (
@@ -186,12 +188,12 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
                 <span className="text-base flex-shrink-0">{intent.icon}</span>
                 <div className="flex-1">
                   <div className="text-[12px] font-semibold" style={{ color: isSelected ? c.color : '#9AA4BD' }}>
-                    {intent.label}
+                    {t(intent.labelKey)}
                   </div>
                   <div className="text-[9.5px] text-ter mt-0.5">
                     {intent.id !== 'important' && isSelected
-                      ? `Close after ${formatMinutes(minutes)} inactive`
-                      : intent.hint}
+                      ? t('intent_selected_hint', { time: formatMinutes(minutes) })
+                      : t(intent.hintKey)}
                   </div>
                 </div>
                 {isSelected && <span className="text-[12px]" style={{ color: c.color }}>✓</span>}
@@ -206,7 +208,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
             className="mb-3 px-3 py-2.5 rounded-[9px]"
             style={{ background: '#151921', border: '1px solid rgba(255,255,255,0.06)' }}
           >
-            <div className="text-[10px] font-semibold text-ter uppercase tracking-wide mb-2">Close after</div>
+            <div className="text-[10px] font-semibold text-ter uppercase tracking-wide mb-2">{t('intent_close_after')}</div>
             <div className="flex gap-1.5 mb-2">
               {TIME_PRESETS.map(preset => {
                 const isActive = minutes === preset.minutes && !customMinutes;
@@ -237,7 +239,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
                   const n = Number(v);
                   if (n > 0) setMinutes(n);
                 }}
-                placeholder="Custom"
+                placeholder={t('intent_custom_placeholder')}
                 className="font-mono text-[11px] text-pri outline-none px-2 py-1 rounded-[6px] w-20"
                 style={{
                   background: '#0E1117',
@@ -245,9 +247,9 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
                   color: '#EAF0FA',
                 }}
               />
-              <span className="text-[10px] text-ter">min</span>
+              <span className="text-[10px] text-ter">{t('intent_min')}</span>
               {customMinutes && (
-                <span className="text-[10px] font-semibold text-accent">= {formatMinutes(Number(customMinutes))}</span>
+                <span className="text-[10px] font-semibold text-accent">{t('intent_equals', { time: formatMinutes(Number(customMinutes)) })}</span>
               )}
             </div>
           </div>
@@ -260,7 +262,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
             className="flex-1 py-2 rounded-[7px] text-xs font-semibold text-sec"
             style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
           >
-            Cancel
+            {t('intent_cancel')}
           </button>
           <button
             onClick={handleDone}
@@ -268,7 +270,7 @@ export default function IntentCreator({ domain, rules, onClose, onSuccess }: Int
             className="flex-[2] py-2 rounded-[7px] text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: '#3CE882', color: '#080A0F' }}
           >
-            {loading ? 'Saving...' : existingRule ? 'Replace & Save' : 'Done'}
+            {loading ? t('intent_saving') : existingRule ? t('intent_replace_save') : t('intent_done')}
           </button>
         </div>
       </div>

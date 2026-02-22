@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useT } from '../../shared/LangContext';
 
 interface RuleCardMenuProps {
   onEdit: () => void;
@@ -8,6 +9,7 @@ interface RuleCardMenuProps {
 
 export default function RuleCardMenu({ onEdit, onDelete, onClose }: RuleCardMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -32,11 +34,11 @@ export default function RuleCardMenu({ onEdit, onDelete, onClose }: RuleCardMenu
       }}
     >
       {[
-        { icon: '✏️', label: 'Edit', color: '#EAF0FA', onClick: onEdit },
-        { icon: '🗑', label: 'Remove', color: '#E8455A', onClick: onDelete },
+        { icon: '✏️', labelKey: 'rulecardmenu_edit' as const, color: '#EAF0FA', onClick: onEdit },
+        { icon: '🗑', labelKey: 'rulecardmenu_remove' as const, color: '#E8455A', onClick: onDelete },
       ].map((item, k) => (
         <button
-          key={item.label}
+          key={item.labelKey}
           onClick={item.onClick}
           className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium transition-colors hover:bg-bg4"
           style={{
@@ -45,7 +47,7 @@ export default function RuleCardMenu({ onEdit, onDelete, onClose }: RuleCardMenu
           }}
         >
           <span className="text-[12px]">{item.icon}</span>
-          {item.label}
+          {t(item.labelKey)}
         </button>
       ))}
     </div>
