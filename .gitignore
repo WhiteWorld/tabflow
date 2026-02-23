@@ -33,3 +33,7 @@ npm-debug.log*
 # Chrome extension packaging
 *.crx
 *.pem
+*.zip
+
+# Screenshots (generated)
+screenshots/
