@@ -690,7 +690,7 @@ const SettingsScreen = () => (
             <div style={{ fontSize: 12.5, fontWeight: 500 }}>API Key</div>
             <div style={{ fontSize: 10, color: C.accent, fontFamily: mono, marginTop: 3 }}>✓ Connected</div>
           </div>
-          <input type="password" defaultValue="sk-ant-xxxxx" style={{ width: 170, padding: "6px 10px", background: C.bg3, border: `1px solid ${C.border}`, borderRadius: 6, color: C.t1, fontFamily: mono, fontSize: 11.5, outline: "none" }} />
+          <input type="password" defaultValue="your-api-key-here" style={{ width: 170, padding: "6px 10px", background: C.bg3, border: `1px solid ${C.border}`, borderRadius: 6, color: C.t1, fontFamily: mono, fontSize: 11.5, outline: "none" }} />
         </div>
         <div style={{ background: C.accentFaint, border: `1px solid rgba(60,232,130,0.12)`, borderRadius: 9, padding: "11px 14px", marginTop: 10, fontSize: 10.5, color: C.t3, lineHeight: 1.6 }}>
           <b style={{ color: C.accent }}>🔒 Privacy:</b> Only tab URLs and titles are sent. Your API key is stored locally and never sent to TabFlow servers.
