@@ -37,3 +37,7 @@ npm-debug.log*
 
 # Screenshots (generated)
 screenshots/
+
+# Claude Code local files
+.claude/settings.local.json
+.claude/worktrees/
