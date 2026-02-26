@@ -17,6 +17,7 @@ import IntentCreator from './components/IntentCreator';
 import { LangContext } from '../shared/LangContext';
 import { createT, resolveLang } from '../shared/lang';
 import type { Settings } from '../shared/types';
+import { extractRootDomain } from '../shared/utils';
 
 type View = 'now' | 'soon' | 'past';
 
@@ -70,7 +71,21 @@ export default function App() {
   const managedTabIds = new Set(
     Object.values(runtime.managedTabs).map(e => e.tabId)
   );
-  const nowTabs = tabs.filter(t => !managedTabIds.has(t.id!));
+  // Domains covered by at least one enabled rule
+  const ruledDomains = new Set(
+    rules.filter(r => r.enabled).flatMap(r => r.domains)
+  );
+  // Now: tabs not in managed (active countdown) AND whose domain has no rule
+  const nowTabs = tabs.filter(t => {
+    if (managedTabIds.has(t.id!)) return false;
+    try {
+      const hostname = new URL(t.url ?? '').hostname;
+      const rootDomain = extractRootDomain(hostname);
+      return !ruledDomains.has(rootDomain);
+    } catch {
+      return true;
+    }
+  });
   const soonEntries = Object.values(runtime.managedTabs).filter(e => openTabIds.has(e.tabId));
   const activeRuleCount = rules.filter(r => r.enabled).length;
 
